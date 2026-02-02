@@ -46,7 +46,7 @@ typeOf ctx t =
        in if tyT1 == TyNat
             then TyBool
             else error $ tmIsZeroErr tyT1
-
+    _ -> error "No rule applies"
   where tmAppErr1 tyT1 = "TmApp: expected TyArr, but got " ++ show tyT1
         tmAppErr2 tyT11 tyT2 = "TmApp: type mismatch, where tyT11 is " ++ show tyT11 ++ " and tyT2 is " ++ show tyT2
         tmIfErr1 tyT1 = "TmIf: expected bool, but got show" ++ show tyT1

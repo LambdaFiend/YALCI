@@ -78,7 +78,7 @@ eval1 t =
     TmIsZero TmZero -> TmTrue
     TmIsZero (TmSucc nv1) | isVal nv1 -> TmFalse
     TmIsZero t1 -> TmIsZero $ eval1 t1
-    _ -> error "No Rule Applies"
+    _ -> error "No rule applies"
 
 eval :: Term -> Term
 eval t | isVal t   = t
