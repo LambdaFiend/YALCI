@@ -51,8 +51,7 @@ shift :: Index -> Index -> TermNode -> UpdatedTmArrTm
 shift c d t = let tm = getTm t; fi = getFI t; shift' = shift c d in
   UpdatedTmArrTm $
   case tm of
-    TmVar k l ->
-      (TermNode fi $ TmVar (if k < c then k else k + d) (l + d), shift')
+    TmVar k l -> (TermNode fi $ TmVar (if k < c then k else k + d) (l + d), shift')
     TmAbs x ty t1 -> (t, shift (c + 1) d)
     _ -> (t, shift')
 
@@ -76,8 +75,7 @@ genIndex :: [Name] -> TermNode -> UpdatedTmArrTm
 genIndex ctx t = let tm = getTm t; fi = getFI t; genIndex' = genIndex ctx in
   UpdatedTmArrTm $
   case tm of
-    TmVarRaw x ->
-      (TermNode fi $ TmVar (length $ takeWhile (/= x) ctx) (length ctx), genIndex')
+    TmVarRaw x -> (TermNode fi $ TmVar (length $ takeWhile (/= x) ctx) (length ctx), genIndex')
     TmAbs x ty t1 -> (t, genIndex (x:ctx))
     _ -> (t, genIndex')
 
