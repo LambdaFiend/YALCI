@@ -120,9 +120,19 @@ Abst
   : "\\" Var ":" TypeArr "." Term { TermNode (tokenPos $1) $ TmAbs (snd $2) $4 $6 }
   | "\\" "_" ":" TypeArr "." Term { TermNode (tokenPos $1) $ TmWildCard $4 $6 }
 
+Pattern
+  : Name                  { PVar $ snd $1 }
+  | "{" PatternRecord "}" { PRecord $2 }
+  
+PatternRecord
+  : PatternRecord "," Name "=" Pattern { $1 ++ [(snd $3, $5)] }
+  | PatternRecord "," Pattern          { $1 ++ [("", $3)] }
+  | Name "=" Pattern                   { [(snd $1, $3)] }
+  | Pattern                            { [("", $1)] }
+
 IfTE : if Term then Term else Term { TermNode (tokenPos $1) $ TmIf $2 $4 $6 }
 
-Let : let Var "=" Term in Term { TermNode (tokenPos $1) $ TmLet (snd $2) $4 $6 }
+Let : let Pattern "=" Term in Term { TermNode (tokenPos $1) $ TmLet $2 $4 $6 }
 
 Succ : succ Atom { TermNode (tokenPos $1) $ TmSucc $2 }
 

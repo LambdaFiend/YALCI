@@ -41,7 +41,7 @@ shift c d t = let tm = getTm t; fi = getFI t; shift' = shift c d in
   case tm of
     TmVar k l -> (TermNode fi $ TmVar (if k < c then k else k + d) (l + d), shift')
     TmAbs x ty t1 -> (t, shift (c + 1) d)
-    TmLet x t1 t2 -> (t, shift (c + 1) d)
+    TmLet p t1 t2 -> (t, shift (c + (length $ namesOfPattern p)) d)
     _ -> (t, shift')
 
 subst' :: Index -> TermNode -> TermNode -> TermNode
@@ -53,7 +53,7 @@ subst c j s t = let tm = getTm t; subst' = subst c j s in
   case tm of
     TmVar k l -> (if k == j + c then shift' 0 c s else t, subst')
     TmAbs x ty t1 -> (t, subst (c + 1) j s)
-    TmLet x t1 t2 -> (t, subst (c + 1) j s)
+    TmLet p t1 t2 -> (t, subst (c + (length $ namesOfPattern p)) j s)
     _ -> (t, subst')
 
 genIndex' :: TermNode -> TermNode
@@ -67,6 +67,12 @@ genIndex ctx t = let tm = getTm t; fi = getFI t; genIndex' = genIndex ctx in
     TmAbs x ty t1 -> (t, genIndex (x:ctx))
     TmWildCard ty t2 -> (t, genIndex ("":ctx))
     TmRecord ts -> (TermNode fi $ TmRecord (map (\((x, y), k) -> (case x of "" -> show k; _ -> x, y)) $ zip ts [1..]), genIndex')
+    TmLet p@(PRecord ps) t1 t2 ->
+      ( TermNode fi
+        $ TmLet (PRecord (map (\((x, y), k) -> (case x of "" -> show k; _ -> x, y)) $ zip ps [1..])) t1 t2
+      , genIndex (namesOfPattern p ++ ctx)
+      )
+    TmLet p t1 t2 -> (t, genIndex (namesOfPattern p ++ ctx))
     _ -> (t, genIndex')
 
 
@@ -79,9 +85,9 @@ desugarTm c t = let tm = getTm t; fi = getFI t; desugarTm' = desugarTm c in
   case tm of
     TmVar l k -> (TermNode fi $ TmVar (l + (c - k)) c, desugarTm')
     TmAbs x ty t1 -> (t, desugarTm (c + 1))
+    TmLet p t1 t2 -> (t, desugarTm (c + (length $ namesOfPattern p)))
     TmSeq t1 t2 -> (TermNode fi $ TmApp (TermNode fi $ TmAbs "x" TyUnit t2) t1, desugarTm')
     TmWildCard ty t2 -> (TermNode fi $ TmAbs "x" ty t2, desugarTm')
     TmAscribe t1 ty -> (TermNode fi $ TmApp (TermNode fi $ TmAbs "x" ty (TermNode fi $ TmVar 0 (c + 1))) t1, desugarTm')
-    TmLet x t1 t2 -> (TermNode fi $ TmApp (TermNode fi $ TmAbs x (typeOf' t1) t2) t1, desugarTm')
     _ -> (t, desugarTm')
 

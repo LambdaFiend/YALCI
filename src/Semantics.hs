@@ -26,13 +26,12 @@ isPattern t = let tm = getTm t in
     TmRecord ts -> and $ map (isPattern . snd) ts
     _ -> False
 
-match :: TermNode -> TermNode -> [TermNode -> TermNode]
-match (TermNode _ (TmVar _ _)) t2 = [evalSubst t2]
-match (TermNode _ (TmRecord ts1)) (TermNode _ (TmRecord ts2)) =
+match :: Pattern -> TermNode -> [TermNode -> TermNode]
+match (PVar _) t2 = [evalSubst t2]
+match (PRecord ps1) (TermNode _ (TmRecord ts2)) =
   concat
   $ map (\(y1, y2) -> match y1 y2)
-  $ zip (map snd ts1) (map snd ts2)
-
+  $ zip (map snd ps1) (map snd ts2)
 
 eval1 :: TermNode -> TermNode
 eval1 t = let tm = getTm t; fi = getFI t in
@@ -65,8 +64,8 @@ eval1 t = let tm = getTm t; fi = getFI t in
     TmSeq t1 t2 -> TmSeq (eval1 t1) t2
     TmAscribe t1 ty | not $ isVal t1 -> TmAscribe (eval1 t1) ty
     TmAscribe v1 _ -> getTm v1
-    TmLet x t1 t2 | not $ isVal t1 -> TmLet x (eval1 t1) t2
-    TmLet _ v1 t2 -> getTm $ evalSubst v1 t2
+    TmLet p t1 t2 | not $ isVal t1 -> TmLet p (eval1 t1) t2
+    TmLet p v1 t2 -> getTm $ foldr ($) t2 (match p v1)
     TmProj v1@(TermNode _ (TmRecord ts)) x
       | isVal v1 && lookup x ts /= Nothing -> getTm $ fromMaybeTm $ lookup x ts
     TmProj t1 x -> TmProj (eval1 t1) x

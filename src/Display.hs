@@ -31,8 +31,8 @@ showTm ctx t = let tm = getTm t in
     TmAscribe t1 ty -> "(" ++ showTm' t1 ++ " as " ++ showType ty ++ ")"
     TmSeq t1 t2 -> "(" ++ showTm' t1 ++ ";" ++ showTm' t2 ++ ")"
     TmWildCard ty t2 -> "(" ++ "λ_:" ++ showType ty ++ "." ++ showTm' t2 ++ ")"
-    TmLet x t1 t2 -> let x' = fixName' x in
-      "(let " ++ x ++ " = " ++ showTm' t1 ++ " in " ++ showTm (x':ctx) t2 ++ ")"
+    TmLet p t1 t2 -> let p' = namesOfPattern p in
+      "(let " ++ showPattern p ++ " = " ++ showTm' t1 ++ " in " ++ showTm (p' ++ ctx) t2 ++ ")"
     TmRecord ts ->
       "{"
       ++ (intercalate ", "
@@ -70,4 +70,15 @@ showType ty =
       ++ (intercalate ", "
         $ map (\((x, y), k) -> (if (show k /= x) then x ++ " : " else "") ++ showType y)
         $ zip tys [1..])
+      ++ "}"
+
+showPattern :: Pattern -> String
+showPattern p =
+  case p of
+    PVar x -> x
+    PRecord ps ->
+      "{"
+      ++ (intercalate ", "
+        $ map (\((x, y), k) -> (if (show k /= x) then x ++ " : " else "") ++ showPattern y)
+        $ zip ps [1..])
       ++ "}"

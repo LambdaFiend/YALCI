@@ -28,9 +28,14 @@ data Term
   | TmSeq TermNode TermNode
   | TmWildCard Type TermNode
   | TmAscribe TermNode Type
-  | TmLet Name TermNode TermNode
+  | TmLet Pattern TermNode TermNode
   | TmProj TermNode Name
   | TmRecord [(Name, TermNode)]
+  deriving (Eq, Show)
+
+data Pattern
+  = PVar Name
+  | PRecord [(Name, Pattern)]
   deriving (Eq, Show)
 
 data Type
@@ -54,3 +59,16 @@ fromMaybeType :: Maybe Type -> Type
 fromMaybeType (Just x) = x
 fromMaybeType Nothing = error "Oops??? Nothing???"
 
+typeOfPattern :: Pattern -> Type -> [(Name, Type)]
+typeOfPattern p ty =
+  case (p, ty) of
+    (PVar x, ty) -> [(x, ty)]
+    (PRecord ps, TyRecord tys) | length ps == length tys ->
+      concat $ map (\(x, y) -> typeOfPattern x y) $ zip (map snd ps) (map snd tys)
+    _ -> error "No rule applies"
+
+namesOfPattern :: Pattern -> [Name]
+namesOfPattern p =
+  case p of
+    PVar x -> [x]
+    PRecord ps -> concat $ map (namesOfPattern . snd) ps

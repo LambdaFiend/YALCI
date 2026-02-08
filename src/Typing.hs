@@ -31,7 +31,10 @@ typeOf ctx t =
     TmAscribe t1 ty -> let tyT1 = typeOf' t1 in check2 tyT1 ty $ tmAscribeErr tyT1 ty
     TmSeq t1 t2 -> let tyT1 = typeOf' t1 in check3 tyT1 TyUnit (typeOf' t2) $ tmSeqErr tyT1
     TmWildCard ty t1 -> TyArr ty $ typeOf' t1
-    TmLet x t1 t2 -> typeOf ((x, typeOf' t1):ctx) t2
+    TmLet p t1 t2 ->
+      let tyT1 = typeOf' t1
+          d = typeOfPattern p tyT1
+       in typeOf (d ++ ctx) t2
     TmProj (TermNode _ (TmRecord ts)) x
       | lookup x ts /= Nothing -> fromMaybeType $ lookup x (map (\(x, y) -> (x, typeOf' y)) ts)
     TmRecord ts -> TyRecord $ map (\(x, y) -> (x, typeOf' y)) ts
