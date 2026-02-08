@@ -17,6 +17,8 @@ isVal t = let tm = getTm t in
     TmZero -> True
     TmSucc nv | isVal nv -> True
     TmRecord ts -> and $ map (isVal . snd) ts
+    TmVariant x v1 ty | isVal v1 -> True
+    TmWildCard ty t11 -> True
     _ -> False
 
 isPattern :: TermNode -> Bool
@@ -67,7 +69,7 @@ eval1 t = let tm = getTm t; fi = getFI t in
     TmLet p t1 t2 | not $ isVal t1 -> TmLet p (eval1 t1) t2
     TmLet p v1 t2 -> getTm $ foldr ($) t2 (match p v1)
     TmProj v1@(TermNode _ (TmRecord ts)) x
-      | isVal v1 && lookup x ts /= Nothing -> getTm $ fromMaybeTm $ lookup x ts
+      | isVal v1 -> getTm $ fromMaybe $ lookup x ts
     TmProj t1 x -> TmProj (eval1 t1) x
     TmRecord ts ->
       let firstHalf = takeWhile (\(_, y) -> isVal y) ts
@@ -75,6 +77,11 @@ eval1 t = let tm = getTm t; fi = getFI t in
           newMiddle = (\ts -> case ts of (t:ts) -> [(fst t, eval1 $ snd t)]; [] -> []) secondHalf
           rest = (\ts -> case ts of (t:ts) -> ts; [] -> []) secondHalf
        in TmRecord (firstHalf ++ newMiddle ++ rest)
+    TmVariant x t1 ty | not $ isVal t1 -> TmVariant x (eval1 t1) ty
+    TmCase t1 ts1 | not $ isVal t1 -> TmCase (eval1 t1) ts1
+    TmCase (TermNode _ (TmVariant x v1 ty)) ts ->
+      let match = snd $ fromMaybe $ lookup x ts
+       in getTm $ evalSubst v1 match
     _ -> error ("No rule applies: " ++ showFileInfo fi)
 
 

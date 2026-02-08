@@ -14,7 +14,7 @@ main = do
   let tok = alexScanTokens txt
   putStrLn $ show tok
   putStrLn ""
-  let ast = desugarTm' $ genIndex' $ parser tok
+  let ast = desugarTm $ genIndex' $ parser tok
   putStrLn $ show ast
   putStrLn ""
   let str = showTm' $ ast
@@ -23,9 +23,9 @@ main = do
   let typ = typeOf' ast
   putStrLn $ showType typ
   putStrLn ""
-  let new = showTm' $ eval1 ast
-  putStrLn new
-  putStrLn ""
+ -- let new = showTm' $ eval1 ast
+--  putStrLn new
+ -- putStrLn ""
   let new = showTm' $ eval ast
   putStrLn new
   putStrLn ""

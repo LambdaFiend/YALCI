@@ -35,9 +35,22 @@ typeOf ctx t =
       let tyT1 = typeOf' t1
           d = typeOfPattern p tyT1
        in typeOf (d ++ ctx) t2
-    TmProj (TermNode _ (TmRecord ts)) x
-      | lookup x ts /= Nothing -> fromMaybeType $ lookup x (map (\(x, y) -> (x, typeOf' y)) ts)
+    TmProj t1 x -> let tyT1 = typeOf' t1 in
+      case tyT1 of
+        TyRecord tys -> fromMaybe $ lookup x tys
+        _ -> error "TmProj: tyT1 is not of the record kind"
     TmRecord ts -> TyRecord $ map (\(x, y) -> (x, typeOf' y)) ts
+    TmVariant x t1 ty@(TyVariant ty1) ->
+      let tyMatch = fromMaybe $ lookup x ty1
+          tyT1 = typeOf' t1
+       in check3 tyMatch tyT1 ty $ tmVariantErr tyT1 tyMatch
+    TmCase t1 ts -> let tyT1 = typeOf' t1 in
+      case tyT1 of
+        (TyVariant tys) ->
+          (\(x:xs) -> if all (== x) xs then x else error tmCaseErr2)
+            $ map (\((x, (y, z)), ty) -> typeOf ((y, ty):ctx) z)
+            $ zip ts (map snd tys)
+        _ -> error $ tmCaseErr1 tyT1
     _ -> error ("No rule applies: " ++ showFileInfo fi)
 
   where tm = getTm t
@@ -57,6 +70,9 @@ typeOf ctx t =
         tmIsZeroErr tyT1 = "TmIsZero: expected TyNat, but got " ++ showType tyT1 ++ showFileInfo fi
         tmAscribeErr tyT1 ty = "TmAscribe: expected " ++ showType ty ++ " but got " ++ showType tyT1 ++ showFileInfo fi
         tmSeqErr tyT1 = "TmSeq: expected TyUnit, but got " ++ showType tyT1 ++ showFileInfo fi
+        tmVariantErr tyT1 tyMatch = "TmVariant: type mismatch, where tyT1 is " ++ showType tyT1 ++ " and tyMatch is " ++ showType tyMatch ++ showFileInfo fi
+        tmCaseErr1 tyT1 = "TmCase: expected tyT1 to be of the TyVariant kind, but got: " ++ showType tyT1
+        tmCaseErr2 = "TmCase: not all match constructors match type!"
 
 getTypeFromContext :: Context -> Index -> Type
 getTypeFromContext ctx ind | ind < length ctx = snd $ (ctx !! ind)

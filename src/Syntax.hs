@@ -31,11 +31,8 @@ data Term
   | TmLet Pattern TermNode TermNode
   | TmProj TermNode Name
   | TmRecord [(Name, TermNode)]
-  deriving (Eq, Show)
-
-data Pattern
-  = PVar Name
-  | PRecord [(Name, Pattern)]
+  | TmVariant Name TermNode Type
+  | TmCase TermNode [(Name, (Name, TermNode))]
   deriving (Eq, Show)
 
 data Type
@@ -44,6 +41,12 @@ data Type
   | TyUnit
   | TyArr Type Type
   | TyRecord [(Name, Type)]
+  | TyVariant [(Name, Type)]
+  deriving (Eq, Show)
+
+data Pattern
+  = PVar Name
+  | PRecord [(Name, Pattern)]
   deriving (Eq, Show)
 
 type Context = [(Name, Type)]
@@ -51,13 +54,9 @@ type Context = [(Name, Type)]
 noPos :: FileInfo
 noPos = AlexPn (-1) (-1) (-1)
 
-fromMaybeTm :: Maybe TermNode -> TermNode
-fromMaybeTm (Just x) = x
-fromMaybeTm Nothing = error "Oops??? Nothing???"
-
-fromMaybeType :: Maybe Type -> Type
-fromMaybeType (Just x) = x
-fromMaybeType Nothing = error "Oops??? Nothing???"
+fromMaybe :: Maybe a -> a
+fromMaybe (Just x) = x
+fromMaybe Nothing = error "Oops??? Nothing???"
 
 typeOfPattern :: Pattern -> Type -> [(Name, Type)]
 typeOfPattern p ty =

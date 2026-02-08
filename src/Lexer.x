@@ -35,8 +35,13 @@ unit                   { \pos _ -> Token pos UNIT }
 "{"                    { \pos _ -> Token pos LBRACK }
 "}"                    { \pos _ -> Token pos RBRACK }
 "->"                   { \pos _ -> Token pos TYARR }
+"<"                    { \pos _ -> Token pos LANGLE }
+">"                    { \pos _ -> Token pos RANGLE }
 "_"                    { \pos _ -> Token pos UNDER }
 "="                    { \pos _ -> Token pos ASSIGN }
+"|"                    { \pos _ -> Token pos PIPE }
+case                   { \pos _ -> Token pos CASE }
+of                     { \pos _ -> Token pos OF }
 in                     { \pos _ -> Token pos IN }
 as                     { \pos _ -> Token pos AS }
 let                    { \pos _ -> Token pos LET }
@@ -74,11 +79,16 @@ data TokenData
   | RPAREN
   | LBRACK
   | RBRACK
+  | LANGLE
+  | RANGLE
   | UNDER
   | ASSIGN
+  | PIPE
   | IN
   | AS
   | LET
+  | CASE
+  | OF
   | TYARR
   | TYNAT
   | TYBOOL

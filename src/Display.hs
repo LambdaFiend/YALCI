@@ -31,15 +31,20 @@ showTm ctx t = let tm = getTm t in
     TmAscribe t1 ty -> "(" ++ showTm' t1 ++ " as " ++ showType ty ++ ")"
     TmSeq t1 t2 -> "(" ++ showTm' t1 ++ ";" ++ showTm' t2 ++ ")"
     TmWildCard ty t2 -> "(" ++ "λ_:" ++ showType ty ++ "." ++ showTm' t2 ++ ")"
-    TmLet p t1 t2 -> let p' = namesOfPattern p in
-      "(let " ++ showPattern p ++ " = " ++ showTm' t1 ++ " in " ++ showTm (p' ++ ctx) t2 ++ ")"
+    TmLet p t1 t2 -> let p' = map (fixName ctx) $ namesOfPattern p in
+      "(let " ++ showPattern ctx p ++ " = " ++ showTm' t1 ++ " in " ++ showTm (p' ++ ctx) t2 ++ ")"
     TmRecord ts ->
       "{"
       ++ (intercalate ", "
-        $ map (\((x, y), k) -> (if (show k /= x) then x ++ " : " else "") ++ showTm' y)
+        $ map (\((x, y), k) -> (if (show k /= x) then x ++ " = " else "") ++ showTm' y)
         $ zip ts [1..])
       ++ "}"
     TmProj t1 x -> "(" ++ showTm' t1 ++ "." ++ show x ++ ")"
+    TmVariant x t1 ty -> let x' = fixName ctx x in
+      "(" ++ "<" ++ x' ++ ", " ++ showTm' t1 ++ "> as " ++ showType ty ++ ")"
+    TmCase t1 ts ->
+      "(case " ++ showTm' t1 ++ " of \n"
+      ++ "    " ++ (intercalate "\n  | " (map (\(x, (y, z)) -> "<" ++ x ++ ", " ++ y ++ "> -> " ++ showTm (y:ctx) z) ts)) ++ ")"
   where showTm' = showTm ctx
         fixName' = fixName ctx
         tmVarErr l ctxLength = "TmVar: bad context length: " ++ show l ++ "/=" ++ show ctxLength
@@ -71,14 +76,20 @@ showType ty =
         $ map (\((x, y), k) -> (if (show k /= x) then x ++ " : " else "") ++ showType y)
         $ zip tys [1..])
       ++ "}"
+    TyVariant tys ->
+      "<"
+      ++ (intercalate ", "
+        $ map (\((x, y), k) -> (if (show k /= x) then x ++ " : " else "") ++ showType y)
+        $ zip tys [1..])
+      ++ ">"
 
-showPattern :: Pattern -> String
-showPattern p =
+showPattern :: [Name] -> Pattern -> String
+showPattern ctx p =
   case p of
-    PVar x -> x
+    PVar x -> fixName ctx x
     PRecord ps ->
       "{"
       ++ (intercalate ", "
-        $ map (\((x, y), k) -> (if (show k /= x) then x ++ " : " else "") ++ showPattern y)
+        $ map (\((x, y), k) -> (if (show k /= x) then x ++ " : " else "") ++ showPattern ctx y)
         $ zip ps [1..])
       ++ "}"

@@ -28,13 +28,18 @@ unit       { Token pos UNIT }
 ")"        { Token pos RPAREN }
 "{"        { Token pos LBRACK }
 "}"        { Token pos RBRACK }
+"<"        { Token pos LANGLE }
+">"        { Token pos RANGLE }
 ","        { Token pos COMMA }
 "_"        { Token pos UNDER }
 "->"       { Token pos TYARR }
 "="        { Token pos ASSIGN }
+"|"        { Token pos PIPE }
 in         { Token pos IN }
 as         { Token pos AS }
 let        { Token pos LET }
+case       { Token pos CASE }
+of         { Token pos OF }
 tynat      { Token pos TYNAT }
 tybool     { Token pos TYBOOL }
 tyunit     { Token pos TYUNIT }
@@ -46,35 +51,43 @@ id         { Token pos (ID s) }
 %%
 
 Term
-  : Seq  { $1 }
-  | IfTE { $1 }
-  | Abst { $1 }
-  | Let  { $1 }
-  | Proj { $1 }
+  : IfTE      { $1 }
+  | Abst      { $1 }
+  | Let       { $1 }
+  | ProjSeq   { $1 }
+  | BeginCase { $1 }
 
-Proj
-  : Seq "." Num  { TermNode (getFI $1) $ TmProj $1 (show $ snd $3) }
-  | Seq "." Name { TermNode (getFI $1) $ TmProj $1 (snd $3) }
+BeginCase
+  : case Term of ContinueCase { TermNode (tokenPos $1) $ TmCase $2 $4 }
 
-Seq
-  : Seq ";" Ascr { TermNode (getFI $1) $ TmSeq $1 $3 }
-  | Ascr         { $1 }
+ContinueCase
+  : "<" Name "=" Var ">" "->" ProjSeq "|" ContinueCase { [(snd $2, (snd $4, $7))] ++ $9 }
+  | "<" Name "=" Var ">" "->" ProjSeq                  { [(snd $2, (snd $4, $7))] }
 
-Ascr
-  : App as TypeArr { TermNode (getFI $1) $ TmAscribe $1 $3 }
-  | App            { $1 }
 
-App
-  : App Atom { TermNode (getFI $1) $ TmApp $1 $2 }
-  | Atom     { $1 }
+ProjSeq
+  : ProjSeq "." Num     { TermNode (getFI $1) $ TmProj $1 (show $ snd $3) }
+  | ProjSeq "." Name    { TermNode (getFI $1) $ TmProj $1 (snd $3) }
+  | ProjSeq ";" AscrApp { TermNode (getFI $1) $ TmSeq $1 $3 }
+  | AscrApp             { $1 }
+
+AscrApp
+  : AscrApp as TypeArr { TermNode (getFI $1) $ TmAscribe $1 $3 }
+  | AscrApp Atom       { TermNode (getFI $1) $ TmApp $1 $2 }
+  | Atom               { $1 }
+
 
 Atom
-  : Value          { $1 }
-  | Succ           { $1 }
-  | Pred           { $1 }
-  | IsZero         { $1 }
-  | "(" Term ")"   { $2 }
-  | "{" Record "}" { TermNode (tokenPos $1) $ TmRecord $2 }
+  : Value           { $1 }
+  | Succ            { $1 }
+  | Pred            { $1 }
+  | IsZero          { $1 }
+  | "(" Term ")"    { $2 }
+  | "{" Record "}"  { TermNode (tokenPos $1) $ TmRecord $2 }
+  | Variant         { $1 }
+
+Variant
+  : "<" Name "=" Term ">" as Type { TermNode (tokenPos $1) $ TmVariant (snd $2) $4 $7 }
 
 Record
   : Record "," Name "=" Term { $1 ++ [(snd $3, $5)] }
@@ -100,11 +113,18 @@ Var : var { (tokenPos $1, (\(VAR s) -> s) $ tokenDat $1) }
 Num : num { (tokenPos $1, (\(NUM n) -> n) $ tokenDat $1) }
 
 Type
-  : tynat              { TyNat }
-  | tybool             { TyBool }
-  | tyunit             { TyUnit }
-  | "(" TypeArr ")"    { $2 }
-  | "{" TypeRecord "}" { TyRecord $2 }
+  : tynat               { TyNat }
+  | tybool              { TyBool }
+  | tyunit              { TyUnit }
+  | "(" TypeArr ")"     { $2 }
+  | "{" TypeRecord "}"  { TyRecord $2 }
+  | "<" TypeVariant ">" { TyVariant $2 }
+
+TypeVariant
+  : TypeVariant "," Name ":" Type { $1 ++ [(snd $3, $5)] }
+  | TypeVariant "," Type          { $1 ++ [("", $3)] }
+  | Name ":" Type                 { [(snd $1, $3)] }
+  | Type                          { [("", $1)] }
 
 TypeArr
   : Type "->" TypeArr { TyArr $1 $3 }
@@ -121,7 +141,7 @@ Abst
   | "\\" "_" ":" TypeArr "." Term { TermNode (tokenPos $1) $ TmWildCard $4 $6 }
 
 Pattern
-  : Name                  { PVar $ snd $1 }
+  : Var                   { PVar $ snd $1 }
   | "{" PatternRecord "}" { PRecord $2 }
   
 PatternRecord
