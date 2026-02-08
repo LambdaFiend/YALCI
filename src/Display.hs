@@ -9,17 +9,6 @@ showTm' t = showTm [] t
 showTm :: Context -> TermNode -> String
 showTm ctx t = let tm = getTm t in
   case tm of
-    TmSucc t1 -> "succ " ++ "(" ++ showTm' t1 ++ ")"
-    TmPred t1 -> "pred " ++ "(" ++ showTm' t1 ++ ")"
-    TmIsZero t1 -> "iszero " ++ "(" ++ showTm' t1 ++ ")"
-    TmZero -> "0"
-    TmUnit -> "unit"
-    TmSeq t1 t2 -> showTm' t1 ++ ";" ++ showTm' t2
-    TmTrue -> "true"
-    TmFalse -> "false"
-    TmIf t1 t2 t3 -> "(" ++ "if " ++ showTm' t1
-      ++ " then " ++ showTm' t2
-      ++ " else " ++ showTm' t3 ++ ")"
     TmVar k l -> let ctxLength = length ctx in
       if (l == ctxLength)
         then getNameFromContext ctx k
@@ -28,6 +17,19 @@ showTm ctx t = let tm = getTm t in
       let x' = fixName ctx x
        in "(" ++ "λ" ++ x' ++ ":" ++ showType ty ++ "." ++ showTm ((x', ty):ctx) t1 ++ ")"
     TmApp t1 t2 -> "(" ++ showTm' t1 ++ " " ++ showTm' t2 ++ ")"
+    TmSucc t1 -> "(" ++ "succ " ++ showTm' t1 ++ ")"
+    TmPred t1 -> "(" ++ "pred " ++ showTm' t1 ++ ")"
+    TmIsZero t1 -> "(" ++ "iszero " ++ showTm' t1 ++ ")"
+    TmZero -> "0"
+    TmTrue -> "true"
+    TmFalse -> "false"
+    TmIf t1 t2 t3 -> "(" ++ "if " ++ showTm' t1
+      ++ " then " ++ showTm' t2
+      ++ " else " ++ showTm' t3 ++ ")"
+    TmUnit -> "unit"
+    TmAscribe t1 ty -> "(" ++ showTm' t1 ++ " as " ++ showType ty ++ ")"
+    TmSeq t1 t2 -> "(" ++ showTm' t1 ++ ";" ++ showTm' t2 ++ ")"
+    TmWildCard ty t2 -> "(" ++ "λ_:" ++ showType ty ++ "." ++ showTm' t2 ++ ")"
   where showTm' = showTm ctx
         tmVarErr l ctxLength = "TmVar: bad context length: " ++ show l ++ "/=" ++ (show $ ctxLength)
 

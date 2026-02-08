@@ -26,6 +26,9 @@ data Term
   | TmIsZero TermNode
   | TmUnit
   | TmSeq TermNode TermNode
+  | TmWildCard Type TermNode
+  | TmAscribe TermNode Type
+  | TmLet Name TermNode TermNode
   deriving (Eq, Show)
 
 data Type

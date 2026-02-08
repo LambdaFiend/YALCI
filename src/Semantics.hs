@@ -10,18 +10,21 @@ isVal :: TermNode -> Bool
 isVal t = let tm = getTm t in
   case tm of
     TmAbs _ _ _ -> True
+    TmUnit -> True
     TmTrue -> True
     TmFalse -> True
     TmZero -> True
     TmSucc nv | isVal nv -> True
-    TmUnit -> True
     _ -> False
 
 eval1 :: TermNode -> TermNode
-eval1 t = TermNode fi $
+eval1 t = let tm = getTm t; fi = getFI t in
+  TermNode fi $
   case tm of
-    TmApp (TermNode _ (TmAbs _ _ t12)) v2
-      | isVal v2 -> getTm $ evalSubst v2 t12
+    TmApp (TermNode _ (TmAbs _ _ t11)) v2
+      | isVal v2 -> getTm $ evalSubst v2 t11
+    TmApp (TermNode _ (TmWildCard _ t11)) v2
+      | isVal v2 -> getTm t11
     TmApp v1 t2 | isVal v1 ->
       let t2' = eval1 t2
        in TmApp v1 t2'
@@ -41,9 +44,14 @@ eval1 t = TermNode fi $
     TmIsZero (TermNode _ (TmSucc nv1)) | isVal nv1 -> TmFalse
     TmIsZero t1 -> TmIsZero $ eval1 t1
     TmUnit -> TmUnit
+    TmSeq t1 t2 | not $ isVal t1 -> TmSeq (eval1 t1) t2
+    TmSeq v1 t2 -> getTm $ eval1 t2
+    TmAscribe t1 ty | not $ isVal t1 -> TmAscribe (eval1 t1) ty
+    TmAscribe v1 _ -> getTm v1
+    TmLet x t1 t2 | not $ isVal t1 -> TmLet x (eval1 t1) t2
+    TmLet _ v1 t2 -> getTm $ evalSubst v1 t2
     _ -> error "No rule applies"
-  where tm = getTm t
-        fi = getFI t
+
 
 eval :: TermNode -> TermNode
 eval t | isVal t   = t

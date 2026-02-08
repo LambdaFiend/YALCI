@@ -26,7 +26,12 @@ unit       { Token pos UNIT }
 ";"        { Token pos SEMI }
 "("        { Token pos LPAREN }
 ")"        { Token pos RPAREN }
+"_"        { Token pos UNDER }
 "->"       { Token pos TYARR }
+"="        { Token pos ASSIGN }
+in         { Token pos IN }
+as         { Token pos AS }
+let        { Token pos LET }
 tynat      { Token pos TYNAT }
 tybool     { Token pos TYBOOL }
 tyunit     { Token pos TYUNIT }
@@ -38,10 +43,15 @@ Term
   : Seq  { $1 }
   | IfTE { $1 }
   | Abst { $1 }
+  | Let  { $1 }
 
 Seq
-  : Seq ";" App { TermNode (getFI $1) $ TmSeq $1 $3 }
-  | App         { $1 }
+  : Seq ";" Ascr { TermNode (getFI $1) $ TmSeq $1 $3 }
+  | Ascr         { $1 }
+
+Ascr
+  : App as TypeArr { TermNode (getFI $1) $ TmAscribe $1 $3 }
+  | App            { $1 }
 
 App
   : App Atom { TermNode (getFI $1) $ TmApp $1 $2 }
@@ -71,9 +81,14 @@ Type
   | tyunit { TyUnit }
   | "(" TypeArr ")" { $2 }
 
-Abst : "\\" var ":" TypeArr "." Term { TermNode (tokenPos $1) $ TmAbs ((\(VAR s) -> s) $ tokenDat $2) $4 $6 }
+Abst
+  : "\\" var ":" TypeArr "." Term { TermNode (tokenPos $1) $ TmAbs ((\(VAR s) -> s) $ tokenDat $2) $4 $6 }
+  | "\\" "_" ":" TypeArr "." Term { TermNode (tokenPos $1) $ TmWildCard $4 $6 }
+
 
 IfTE : if Term then Term else Term { TermNode (tokenPos $1) $ TmIf $2 $4 $6 }
+
+Let : let var "=" Term in Term { TermNode (tokenPos $1) $ TmLet ((\(VAR s) -> s) $ tokenDat $2) $4 $6 }
 
 Succ : succ Atom { TermNode (tokenPos $1) $ TmSucc $2 }
 
