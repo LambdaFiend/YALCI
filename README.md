@@ -16,6 +16,6 @@ It's very likely to be a missing dependency - that is, the issue - so this shoul
 
 **You need cabal in order to use this, as you may have already noticed.**
 
-Once you're running the program, write ```:?``` and press enter. It should give you half the indications you need.
+Once you're running the program, write ```:?``` and press enter - it should give you about half the indications you need.
 
 As for the other half, I suggest taking a look at **Benjamin Pierce's "Types and Programming Languages" book**, most particularly its 11th chapter (which pertains to extensions).
