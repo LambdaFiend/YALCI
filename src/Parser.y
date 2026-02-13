@@ -55,7 +55,6 @@ tybool     { Token pos TYBOOL }
 tyunit     { Token pos TYUNIT }
 tylist     { Token pos TYLIST }
 num        { Token pos (NUM n) }
-var        { Token pos (VAR s) }
 id         { Token pos (ID s) }
 
 %%
@@ -135,13 +134,8 @@ Value
   | nil "[" TypeArr "]" { TermNode (tokenPos $1) $ TmNil $3 }
   | Name                { TermNode (fst $1) $ TmVarRaw (snd $1) }
 
-Name
-  : Id  { $1 }
-  | Var { $1 }
 
-Id : id { (tokenPos $1, (\(ID s) -> s) $ tokenDat $1) }
-
-Var : var { (tokenPos $1, (\(VAR s) -> s) $ tokenDat $1) }
+Name : id { (tokenPos $1, (\(ID s) -> s) $ tokenDat $1) }
 
 Num : num { (tokenPos $1, (\(NUM n) -> n) $ tokenDat $1) }
 
@@ -173,9 +167,9 @@ TypeRecord
   | Type                         { [("", $1)] }
 
 Abst
-  : "\\" Var ":" TypeArr "." Term { TermNode (tokenPos $1) $ TmAbs (snd $2) $4 $6 }
+  : "\\" Name ":" TypeArr "." Term { TermNode (tokenPos $1) $ TmAbs (snd $2) $4 $6 }
   | "\\" "_" ":" TypeArr "." Term { TermNode (tokenPos $1) $ TmWildCard $4 $6 }
-  | "\\" Var "." Term             { TermNode (tokenPos $1) $ TmAbs (snd $2) TyUnknown $4 }
+  | "\\" Name "." Term             { TermNode (tokenPos $1) $ TmAbs (snd $2) TyUnknown $4 }
 
 Pattern
   : Name                  { PVar $ snd $1 }

@@ -52,6 +52,7 @@ shift c d t = let tm = getTm t; fi = getFI t; shift' = shift c d in
   case tm of
     TmVar k l x -> (TermNode fi $ TmVar (if k < c then k else k + d) (l + d) x, id', id')
     TmAbs x ty t1 -> (t, shift (c + 1) d, shift')
+    TmWildCard ty t2 -> (t, shift (c + 1) d, shift')
     TmLet p t1 t2 -> (t, shift (c + (length $ namesOfPattern p)) d, shift')
     TmCase t1 ts -> (t, shift (c + 1) d, shift')
     _ -> (t, shift', shift')
@@ -65,6 +66,7 @@ subst c j s t = let tm = getTm t; subst' = subst c j s in
   case tm of
     TmVar k l x -> (if k == j + c then shift' 0 c s else t, id', id')
     TmAbs x ty t1 -> (t, subst (c + 1) j s, subst')
+    TmWildCard ty t2 -> (t, subst (c + 1) j s, subst')
     TmLet p t1 t2 -> (t, subst (c + (length $ namesOfPattern p)) j s, subst')
     TmCase t1 ts -> (t, subst (c + 1) j s, subst')
     _ -> (t, subst', subst')
@@ -110,10 +112,10 @@ desugarTm c t = let tm = getTm t; fi = getFI t; desugarTm' = desugarTm c in
   case tm of
     TmVar l k x -> (TermNode fi $ TmVar (l + (c - k)) c x, desugarTm', desugarTm')
     TmAbs x ty t1 -> (t, desugarTm (c + 1), desugarTm')
-    TmLet p t1 t2 -> (t, desugarTm (c + (length $ namesOfPattern p)), desugarTm')
+    TmWildCard ty t2 -> (TermNode fi $ TmAbs "x" ty t2, desugarTm (c + 1), desugarTm')
     TmCase t1 ts -> (t, desugarTm (c + 1), desugarTm')
+    TmLet p t1 t2 -> (t, desugarTm (c + (length $ namesOfPattern p)), desugarTm')
     TmSeq t1 t2 -> (TermNode fi $ TmApp (TermNode fi $ TmAbs "x" TyUnit t2) t1, desugarTm', desugarTm')
-    TmWildCard ty t2 -> (TermNode fi $ TmAbs "x" ty t2, desugarTm', desugarTm')
     TmAscribe t1 ty -> (TermNode fi $ TmApp (TermNode fi $ TmAbs "x" ty (TermNode fi $ TmVar 0 (c + 1) "[Helper: DONTPRINTME]")) t1, desugarTm', desugarTm')
     _ -> (t, desugarTm', desugarTm')
 

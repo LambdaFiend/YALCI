@@ -51,6 +51,7 @@ showTm ctx t = let tm = getTm t in
     TmIsNil ty t1 -> "(isnil[" ++ showType ty ++ "] " ++ showTm' t1 ++ ")"
     TmHead ty t1 -> "(head[" ++ showType ty ++ "] " ++ showTm' t1 ++ ")"
     TmTail ty t1 -> "(tail[" ++ showType ty ++ "] " ++ showTm' t1 ++ ")"
+    TmErr e -> "#" ++ e ++ "#"
   where showTm' = showTm ctx
         fixName' = fixName ctx
         tmVarErr l ctxLength = "#TmVar: bad context length: " ++ show l ++ "/=" ++ show ctxLength ++ "#"
@@ -94,6 +95,7 @@ showType ty =
     TyList ty -> "(List " ++ showType ty ++ ")"
     TyUnknown -> "Unk"
     TyVar n -> "t" ++ show n
+    TyErr e -> e
 
 showPattern :: [Name] -> Pattern -> String
 showPattern ctx p =

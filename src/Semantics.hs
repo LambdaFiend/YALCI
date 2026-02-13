@@ -32,10 +32,12 @@ isPattern t = let tm = getTm t in
 
 match :: Pattern -> TermNode -> [TermNode -> TermNode]
 match (PVar _) t2 = [evalSubst t2]
-match (PRecord ps1) (TermNode _ (TmRecord ts2)) =
-  concat
-  $ map (\(y1, y2) -> match y1 y2)
-  $ zip (map snd ps1) (map snd ts2)
+match (PRecord ps1) (TermNode _ (TmRecord ts2))
+  | length ps1 == length ts2 && (and $ map (\((x1, _), (x2, _)) -> x1 == x2) $ zip ps1 ts2) =
+    concat
+      $ map (\(y1, y2) -> match y1 y2)
+      $ zip (map snd ps1) (map snd ts2)
+match x y = [(\x -> TermNode noPos $ TmErr "Matching error")]
 
 eval1 :: TermNode -> TermNode
 eval1 t = let tm = getTm t; fi = getFI t in
@@ -61,7 +63,10 @@ eval1 t = let tm = getTm t; fi = getFI t in
     TmAscribe t1 ty | not $ isVal t1 -> TmAscribe (eval1 t1) ty
     TmAscribe v1 _ -> getTm v1
     TmLet p t1 t2 | not $ isVal t1 -> TmLet p (eval1 t1) t2
-    TmLet p v1 t2 -> getTm $ foldr ($) t2 (match p v1)
+    TmLet p v1 t2 -> let subs = reverse $ match p v1; result = foldr ($) t2 subs in
+      if elem (TermNode noPos $ TmErr "Matching error") $ map (\x -> x $ TermNode noPos TmTrue) subs
+        then TmErr "Matching error, either not perfect matching slots or non-matching labels"
+        else getTm result
     TmProj v1@(TermNode _ (TmRecord ts)) x | isVal v1 -> getTm $ fromMaybe $ lookup x ts
     TmProj t1 x -> TmProj (eval1 t1) x
     TmRecord ts ->

@@ -32,7 +32,7 @@ typeOf ctx t =
     TmUnit -> TyUnit
     TmAscribe t1 ty -> let tyT1 = typeOf' t1 in check2 tyT1 ty $ tmAscribeErr tyT1 ty
     TmSeq t1 t2 -> let tyT1 = typeOf' t1 in check3 tyT1 TyUnit (typeOf' t2) $ tmSeqErr tyT1
-    TmWildCard ty t1 -> TyArr ty $ typeOf' t1
+    TmWildCard ty t1 -> TyArr ty $ typeOf (("", ty):ctx) t1
     TmLet p t1 t2 ->
       let tyT1 = typeOf' t1
           d = typeOfPattern p tyT1
@@ -74,28 +74,28 @@ typeOf ctx t =
         check2 :: Type -> Type -> String -> Type
         check2 ty1 ty2 err = check3 ty1 ty2 ty2 err
 
-        tmAppErr1 tyT1 = "TmApp: expected TyArr, but got " ++ showType tyT1 ++ showFileInfo fi
-        tmAppErr2 tyT11 tyT2 = "TmApp: type mismatch, where tyT11 is " ++ showType tyT11 ++ " and tyT2 is " ++ showType tyT2 ++ showFileInfo fi
-        tmIfErr1 tyT1 = "TmIf: expected Bool, but got " ++ showType tyT1 ++ showFileInfo fi
-        tmIfErr2 tyT2 tyT3 = "TmIf: type mismatch, where tyT2 is " ++ showType tyT2 ++ " and tyT3 is " ++ showType tyT3 ++ showFileInfo fi
-        tmSuccErr tyT1 = "TmSucc: expected Nat, but got " ++ showType tyT1 ++ showFileInfo fi
-        tmPredErr tyT1 = "TmPred: expected Nat, but got " ++ showType tyT1 ++ showFileInfo fi
-        tmIsZeroErr tyT1 = "TmIsZero: expected Nat, but got " ++ showType tyT1 ++ showFileInfo fi
-        tmAscribeErr tyT1 ty = "TmAscribe: expected " ++ showType ty ++ " but got " ++ showType tyT1 ++ showFileInfo fi
-        tmSeqErr tyT1 = "TmSeq: expected Unit, but got " ++ showType tyT1 ++ showFileInfo fi
-        tmProjErr = "TmProj: tyT1 is not of the record kind"
-        tmVariantErr tyT1 tyMatch = "TmVariant: type mismatch, where tyT1 is " ++ showType tyT1 ++ " and tyMatch is " ++ showType tyMatch ++ showFileInfo fi
-        tmCaseErr1 tyT1 = "TmCase: expected tyT1 to be of the TyVariant kind, but got: " ++ showType tyT1
-        tmCaseErr2 = "TmCase: not all match constructors match type!"
-        tmFixErr tyT1 = "TmFix: tyT1 is not of type form T->T for some T, instead it's " ++ showType tyT1
-        tmConsErr tyT1 tyT2 ty = "TmCons: tyT1 not equal to ty or tyT2 not equal to TyList ty, tyT1 is " ++ showType tyT1 ++ ", tyT2 is " ++ showType tyT2 ++ "and ty is " ++ showType ty
-        tmIsNilErr tyT1 ty = "TmIsNil: tyT1 not equal to List ty, tyT1 is " ++ showType tyT1 ++ " and ty is " ++ showType ty
-        tmHeadErr tyT1 ty = "TmHead: tyT1 not equal to List ty, tyT1 is " ++ showType tyT1 ++ " and ty is " ++ showType ty
-        tmTailErr tyT1 ty = "TmTail: tyT1 not equal to List ty, tyT1 is " ++ showType tyT1 ++ " and ty is " ++ showType ty
+        tmAppErr1 tyT1 = "\n(TmApp: expected TyArr, but got " ++ showType tyT1 ++ showFileInfo fi ++ ")"
+        tmAppErr2 tyT11 tyT2 = "\n(TmApp: type mismatch, where tyT11 is " ++ showType tyT11 ++ " and tyT2 is " ++ showType tyT2 ++ showFileInfo fi ++ ")"
+        tmIfErr1 tyT1 = "\n(TmIf: expected Bool, but got " ++ showType tyT1 ++ showFileInfo fi ++ ")"
+        tmIfErr2 tyT2 tyT3 = "\n(TmIf: type mismatch, where tyT2 is " ++ showType tyT2 ++ " and tyT3 is " ++ showType tyT3 ++ showFileInfo fi ++ ")"
+        tmSuccErr tyT1 = "\n(TmSucc: expected Nat, but got " ++ showType tyT1 ++ showFileInfo fi ++ ")"
+        tmPredErr tyT1 = "\n(TmPred: expected Nat, but got " ++ showType tyT1 ++ showFileInfo fi ++ ")"
+        tmIsZeroErr tyT1 = "\n(TmIsZero: expected Nat, but got " ++ showType tyT1 ++ showFileInfo fi ++ ")"
+        tmAscribeErr tyT1 ty = "\n(TmAscribe: expected " ++ showType ty ++ " but got " ++ showType tyT1 ++ showFileInfo fi ++ ")"
+        tmSeqErr tyT1 = "\n(TmSeq: expected Unit, but got " ++ showType tyT1 ++ showFileInfo fi ++ ")"
+        tmProjErr = "\n(TmProj: tyT1 is not of the record kind" ++ ")"
+        tmVariantErr tyT1 tyMatch = "\n(TmVariant: type mismatch, where tyT1 is " ++ showType tyT1 ++ " and tyMatch is " ++ showType tyMatch ++ showFileInfo fi ++ ")"
+        tmCaseErr1 tyT1 = "\n(TmCase: expected tyT1 to be of the TyVariant kind, but got: " ++ showType tyT1 ++ ")"
+        tmCaseErr2 = "\n(TmCase: not all match constructors match type!" ++ ")"
+        tmFixErr tyT1 = "\n(TmFix: tyT1 is not of type form T->T for some T, instead it's " ++ showType tyT1 ++ ")"
+        tmConsErr tyT1 tyT2 ty = "\n(TmCons: tyT1 not equal to ty or tyT2 not equal to TyList ty, tyT1 is " ++ showType tyT1 ++ ", tyT2 is " ++ showType tyT2 ++ "and ty is " ++ showType ty ++ ")"
+        tmIsNilErr tyT1 ty = "\n(TmIsNil: tyT1 not equal to List ty, tyT1 is " ++ showType tyT1 ++ " and ty is " ++ showType ty ++ ")"
+        tmHeadErr tyT1 ty = "\n(TmHead: tyT1 not equal to List ty, tyT1 is " ++ showType tyT1 ++ " and ty is " ++ showType ty ++ ")"
+        tmTailErr tyT1 ty = "\n(TmTail: tyT1 not equal to List ty, tyT1 is " ++ showType tyT1 ++ " and ty is " ++ showType ty ++ ")"
 
 getTypeFromContext :: Context -> Index -> Type
-getTypeFromContext ctx ind | ind < length ctx = snd $ (ctx !! ind)
-                           | otherwise = TyErr "TmVar: no type context for variable"
+getTypeFromContext ctx ind | ind >= 0 && ind < length ctx = snd $ (ctx !! ind)
+                           | otherwise = TyErr "\n(TmVar: no type context for variable)"
 
 type Subst = (Type, Type)
 type EquationSet = [(Type, Type)]
