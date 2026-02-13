@@ -1,0 +1,1 @@
+Inside this folder, you may create files from which you can extract stored terms from. It's more practical if you're interested in keeping track of your creations. The file paths are assumed to take root from here. That means you're encouraged to store your expressions here.
