@@ -7,10 +7,10 @@ The steps for setting up this project are as follows:
 
 ```cabal run```
 
-If any warning appears, fix it! You only need to install them, which can be accomplished by using a command such like:
+If any warning appears, fix it! If you need to install a missing dependency, it can be accomplished by using a command such like:
 
 ```cabal install --lib <library_name>```
 
-It's very likely to be a missing dependency, so this should suffice.
+It's very likely to be a missing dependency (the issue), so this should suffice.
 
 **You need cabal in order to use this, as you may have already noticed.**
