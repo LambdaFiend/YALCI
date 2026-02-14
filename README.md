@@ -56,4 +56,14 @@ I'm going to show each construct and its meaning in a very informal manner.
 
 There are two primitive types: Bool, Nat and Unit. Bool is for booleans, Nat is for natural numbers, starting from 0, and Unit is for unit (with not real application besides sequencing, here). Then there are type variables, which are only used for type inference; they are written as a "t" followed by some number starting from 1.
 
+{l1:T1, ..., ln:Tn} is the product type, for records.
+
+\<l1:T1, ..., ln:Tn\> is the sum type, for variants.
+
+T->T' is the type arrow, for abstractions typically.
+
+List T is the list type where the elements of a list are all of type T.
+
 ## Commands
+
+For now, check use :? inside the app.
