@@ -64,7 +64,12 @@ getHelp = (\s -> s ++ "\n") $ intercalate "\n" $
     : "[:av? and :allvars show all variables in the environment]\n"
     : ":av?\n"
     : "[:showenv, :showe, :senv and :se]\n"
-    : ":se"
+    : ":se\n"
+    : "[The commands for showing, typing and evaluating the environment can also be used for environment pages, as follows]\n"
+    : ":se <page_number>"
+    : ":te <page_number>"
+    : ":ee <page_number>"
+    : "[Page numbers start at 1]"
     : []
 
 main :: IO ()
