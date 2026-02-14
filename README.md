@@ -19,3 +19,11 @@ It's very likely to be a missing dependency - that is, the issue - so this shoul
 Once you're running the program, write ```:?``` and press enter - it should give you about half the indications you need.
 
 As for the other half, I suggest taking a look at **Benjamin Pierce's "Types and Programming Languages" book**, most particularly its 11th chapter (which pertains to extensions).
+
+## Syntax
+
+| Construct | Meaning |
+|:---------:|:-------:|
+
+
+## Commands
