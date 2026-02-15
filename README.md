@@ -80,8 +80,8 @@ List T is the list type where the elements of a list are all of type T.
 | :help, :h, :? | :h | Display information regarding the commands. |
 | :show, :sh, :s | :s \<var_name\> | Show the term assigned to <var_name>. |
 | :desugar, :desug, :des, :d | :d <var_name1> <var_name2> | Desugar the term from <var_name1> and place it into <var_name2>. |
-| :var, :v, :assign, :a, :eval | :v <var_name1> :ev <var_name2> | Evaluate from the current environment (given <var_name2>) and store into <var_name1>. |
-| :var, :v, :assign, :a, :evaln | :v <var_name1> :evn <number_of_steps> <var_name2> | Evaluate n-steps from the current environment and store into <var_name1>. |
+| :var, :v, :assign, :a, (+ eval) | :v <var_name1> :ev <var_name2> | Evaluate from the current environment (given <var_name2>) and store into <var_name1>. |
+| :var, :v, :assign, :a, (+ evaln) | :v <var_name1> :evn <number_of_steps> <var_name2> | Evaluate n-steps from the current environment and store into <var_name1>. |
 | :load, :l | :l \<file_path\> | Load terms from file at <file_path>, assigned as `<var_name> := <expression>`, and load into the environment. |
 | :v?, :vars | :v? | Show the first page (10 environment variables) if a number is not specified. |
 | :v?, :vars | :v? \<number\> | Show the <number>'th page (containing 10 environment variables' names). |
