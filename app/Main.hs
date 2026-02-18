@@ -765,7 +765,7 @@ printType ast = do
           setSGR [Reset]
           putStrLn $ showType' ty
           return $ Right ""
-    _ -> do
+    inf | inf == Infer AlgorithmT || inf == OnlyInfer AlgorithmT -> do
       case inferT' ast of
         Left e -> do
           putStrLn e
@@ -775,10 +775,31 @@ printType ast = do
           return $ Left ""
         Right ty -> do
           setSGR [SetColor Foreground Vivid Green]
-          putStrLn "The term's type was inferred"
+          putStrLn "The term's type was inferred using algorithm T"
           setSGR [Reset]
           setSGR [SetColor Foreground Vivid Blue]
           putStrLn "The required context:"
+          setSGR [Reset]
+          putStrLn $ show $ map (\(x, y) -> (x, showType y)) $ fst ty
+          setSGR [SetColor Foreground Vivid Blue]
+          putStrLn "Its principal type:"
+          setSGR [Reset]
+          putStrLn $ showType $ snd ty
+          return $ Right ""
+    inf | inf == Infer AlgorithmW || inf == OnlyInfer AlgorithmW -> do
+      case inferW' ast of
+        Left e -> do
+          putStrLn e
+          setSGR [SetColor Foreground Vivid Red]
+          putStrLn "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+          setSGR [Reset]
+          return $ Left ""
+        Right ty -> do
+          setSGR [SetColor Foreground Vivid Green]
+          putStrLn "The term's type was inferred using algorithm W"
+          setSGR [Reset]
+          setSGR [SetColor Foreground Vivid Blue]
+          putStrLn "The substitution:"
           setSGR [Reset]
           putStrLn $ show $ map (\(x, y) -> (x, showType y)) $ fst ty
           setSGR [SetColor Foreground Vivid Blue]
