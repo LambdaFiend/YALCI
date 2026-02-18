@@ -131,10 +131,16 @@ getFVTy t =
     TyArr ty1 ty2 -> getFVTy ty1 ++ getFVTy ty2
     TyScheme quants ty -> getFVTy ty \\ quants
 
+substCompose1 :: Subst -> Type -> Type
+substCompose1 s@(TyVar n, b) ty =
+  case ty of
+    TyVar m -> if m == n then b else ty
+    TyArr ty1 ty2 -> TyArr (substCompose1 s ty1) (substCompose1 s ty2)
+
 substCompose :: [Subst] -> [Subst]
 substCompose [] = []
 substCompose (x:xs) =
-  let substFun = map (\(a, b) -> if fst x == b then (a, snd x) else (a, b))
+  let substFun = map (\(a, b) -> (a, substCompose1 x b))
    in x:(substCompose $ substFun xs)
 
 tyVarOccurs :: Type -> Type -> Bool
@@ -178,7 +184,7 @@ unify1 ty1 ty2 =
          Right s' ->
            case unify1 (substType s' ty12) (substType s' ty22) of
              Left e -> Left e
-             Right s'' -> Right $ substCompose (s' ++ s'')
+             Right s'' -> Right $ substCompose (s'' ++ s')
   where unify1EqErr ty1 ty2 = "Unification: failed to unify because " ++ showType ty1 ++ " is not equal to " ++ showType ty2
 
 
@@ -266,7 +272,7 @@ inferW ctx t n = let tm = getTm t in
             Right (s2, ty2, n'') ->
               case unify1 (substType s2 ty1) $ TyArr ty2 (TyVar n'') of
                 Left e -> Left e
-                Right s3 -> Right (substCompose $ s1 ++ s2 ++ s3, substType s3 $ TyVar n'', n'' + 1)
+                Right s3 -> Right (substCompose (s3 ++ s2 ++ s1), substType s3 $ TyVar n'', n'' + 1)
     TmAbs x _ t1 ->
       case inferW ((-1, TyScheme [] (TyVar n)):ctx) t1 (n + 1) of
         Left e -> Left e
@@ -277,7 +283,7 @@ inferW ctx t n = let tm = getTm t in
         Right (s1, ty1, n') ->
             case inferW ((-1, TyScheme (closure (substTyVarContext s1 ctx) ty1) ty1):ctx) t2 n' of
               Left e -> Left e
-              Right (s2, ty2, n'') -> Right (substCompose $ s1 ++ s2, ty2, n'')
+              Right (s2, ty2, n'') -> Right (substCompose (s2 ++ s1), ty2, n'')
     _ -> Left "Wrong term for inference using algorithm W"
 
 closure :: TyVarContext -> Type -> [Type]
