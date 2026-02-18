@@ -99,7 +99,7 @@ getTypeFromContext ctx ind | ind >= 0 && ind < length ctx = snd $ (ctx !! ind)
 
 type Subst = (Type, Type)
 type EquationSet = [(Type, Type)]
-type TContext = [(Index, Type)]
+type TyVarContext = [(Index, Type)]
 type TypeVarID = Int
 
 lowerIndexTy :: Type -> Index -> Type
@@ -129,6 +129,7 @@ getFVTy t =
   case t of
     TyVar n -> [t]
     TyArr ty1 ty2 -> getFVTy ty1 ++ getFVTy ty2
+    TyScheme quants ty -> getFVTy ty \\ quants
 
 substCompose :: [Subst] -> [Subst]
 substCompose [] = []
@@ -150,9 +151,16 @@ substType s t =
         then t
         else fromMaybe s'
     TyArr ty1 ty2 -> TyArr (substType s ty1) (substType s ty2)
+    TyScheme quants ty -> let s' = foldr deleteByFstSubst s quants in TyScheme quants $ substType s' ty
 
-substTContext :: [Subst] -> TContext -> TContext
-substTContext s ctx = map (\(x, y) -> (x, substType s y)) ctx
+deleteByFstSubst :: Type -> [Subst] -> [Subst]
+deleteByFstSubst x xs =
+  case break (\(x', _) -> x == x') xs of
+    (prev, _:next) -> prev ++ next
+    _              -> xs
+
+substTyVarContext :: [Subst] -> TyVarContext -> TyVarContext
+substTyVarContext s ctx = map (\(x, y) -> (x, substType s y)) ctx
 
 unify1 :: Type -> Type -> Either String [Subst]
 unify1 ty1 ty2 =
@@ -190,7 +198,7 @@ unify ((t1, t2):xs) =
         Left e -> Left e
         Right x' -> Right $ x' ++ xs'
 
-inferT' :: TermNode -> Either String (TContext, Type)
+inferT' :: TermNode -> Either String (TyVarContext, Type)
 inferT' t =
   case inferT t 0 of
       Left e -> Left e
@@ -200,7 +208,7 @@ inferT' t =
             ctx' = map (\(x, y) -> (x, lowerIndexTy y k)) ctx
          in Right (ctx', ty')
 
-inferT :: TermNode -> TypeVarID -> Either String (TContext, Type, TypeVarID)
+inferT :: TermNode -> TypeVarID -> Either String (TyVarContext, Type, TypeVarID)
 inferT t n = let tm = getTm t in
   case tm of
     TmVar l _ _ -> Right ([(l, TyVar n)], TyVar n, n + 1)
@@ -218,7 +226,7 @@ inferT t n = let tm = getTm t in
                in
                 case s of
                   Left e -> Left e
-                  Right s' -> Right (substTContext s' (ctx1 ++ ctx2), substType s' $ TyVar n'', n'' + 1)
+                  Right s' -> Right (substTyVarContext s' (ctx1 ++ ctx2), substType s' $ TyVar n'', n'' + 1)
     TmAbs _ _ t1 ->
       case inferT t1 n of
         Left e -> Left e
@@ -229,3 +237,48 @@ inferT t n = let tm = getTm t in
             if pair == Nothing
               then (ctxN', TyArr (TyVar n') ty, n' + 1)
               else (filter ((/= (-1)) . fst) ctxN', TyArr (fromMaybe pair) ty, n')
+    _ -> Left "Wrong term for inference using algorithm T"
+
+inferW' :: TermNode -> Either String ([Subst], Type)
+inferW' t =
+  case inferW [] t 0 of
+    Left e -> Left e
+    Right (s, ty, _) -> Right (s, ty)
+
+inferW :: TyVarContext -> TermNode -> TypeVarID -> Either String ([Subst], Type, TypeVarID)
+inferW ctx t n = let tm = getTm t in
+  case tm of
+    TmVar l _ _ ->
+      if l >= 0 && l < length ctx
+        then
+          case snd (ctx !! l) of
+            TyScheme quants ty1 ->
+              let subst = map (\(x, y) -> (x, TyVar y)) $ zip quants [n..length quants + n - 1]
+               in Right ([], substType subst ty1, n + length quants) 
+            _ -> Left "Infer W: wrong type under context"
+        else Left "Infer W: No context for variable"
+    TmApp t1 t2 ->
+      case inferW ctx t1 n of
+        Left e -> Left e
+        Right (s1, ty1, n') ->
+          case inferW (substTyVarContext s1 ctx) t2 n' of
+            Left e -> Left e
+            Right (s2, ty2, n'') ->
+              case unify1 (substType s2 ty1) $ TyArr ty2 (TyVar n'') of
+                Left e -> Left e
+                Right s3 -> Right (substCompose $ s1 ++ s2 ++ s3, substType s3 $ TyVar n'', n'' + 1)
+    TmAbs x _ t1 ->
+      case inferW ((-1, TyScheme [] (TyVar n)):ctx) t1 (n + 1) of
+        Left e -> Left e
+        Right (s1, ty1, n') -> Right (s1, TyArr (substType s1 (TyVar n)) ty1, n')
+    TmLet (PVar x) t1 t2 ->
+      case inferW ctx t1 n of
+        Left e -> Left e
+        Right (s1, ty1, n') ->
+            case inferW ((-1, TyScheme (closure (substTyVarContext s1 ctx) ty1) ty1):ctx) t2 n' of
+              Left e -> Left e
+              Right (s2, ty2, n'') -> Right (substCompose $ s1 ++ s2, ty2, n'')
+    _ -> Left "Wrong term for inference using algorithm W"
+
+closure :: TyVarContext -> Type -> [Type]
+closure ctx ty = getFVTy ty \\ concat (map (getFVTy . snd) ctx)

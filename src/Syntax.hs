@@ -50,8 +50,9 @@ data Type
   | TyRecord [(Name, Type)]
   | TyVariant [(Name, Type)]
   | TyList Type
-  | TyVar Int
   | TyUnknown
+  | TyVar Int
+  | TyScheme [Type] Type
   | TyErr String
   deriving (Eq, Show)
 

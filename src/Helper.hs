@@ -121,18 +121,25 @@ desugarTm c t = let tm = getTm t; fi = getFI t; desugarTm' = desugarTm c in
 
 data TypingMethod
   = Check
-  | Infer
-  | OnlyInfer
+  | Infer InferMethod
+  | OnlyInfer InferMethod
   | TypingError String
+  deriving (Eq, Show)
+
+data InferMethod
+  = AlgorithmT
+  | AlgorithmW
   deriving (Eq, Show)
 
 getTypingMethod :: TermNode -> TypingMethod
 getTypingMethod t = let tm = getTm t in
   case tm of
-    TmVar _ _ _ -> Infer
-    TmApp t1 t2 -> Infer || getTypingMethod t1 || getTypingMethod t2
-    TmAbs _ TyUnknown t1 -> OnlyInfer || getTypingMethod t1
+    TmVar _ _ _ -> Infer AlgorithmT
+    TmApp t1 t2 -> Infer AlgorithmT || getTypingMethod t1 || getTypingMethod t2
+    TmAbs _ TyUnknown t1 -> OnlyInfer AlgorithmT || getTypingMethod t1
     TmAbs _ _ t1 -> Check || getTypingMethod t1
+    TmLet (PVar _) t1 t2 -> Infer AlgorithmW || getTypingMethod t1 || getTypingMethod t2
+    TmLet _ t1 t2 -> Check || getTypingMethod t1 || getTypingMethod t2
     TmTrue -> Check
     TmFalse -> Check
     TmIf t1 t2 t3 -> Check || getTypingMethod t1 || getTypingMethod t2 || getTypingMethod t3
@@ -144,7 +151,6 @@ getTypingMethod t = let tm = getTm t in
     TmSeq t1 t2 -> Check || getTypingMethod t1 || getTypingMethod t2
     TmWildCard _ t2 -> Check || getTypingMethod t2
     TmAscribe t1 _ -> Check || getTypingMethod t1
-    TmLet _ t1 t2 -> Check || getTypingMethod t1 || getTypingMethod t2
     TmRecord ts -> Check || foldr (||) Check (map (getTypingMethod . snd) ts)
     TmProj t1 _ -> Check || getTypingMethod t1
     TmVariant _ t1 _ -> Check || getTypingMethod t1
@@ -156,8 +162,18 @@ getTypingMethod t = let tm = getTm t in
     TmHead _ t1 -> Check || getTypingMethod t1
     TmTail _ t1 -> Check || getTypingMethod t1
   where (||) :: TypingMethod -> TypingMethod -> TypingMethod
-        (||) x Infer = x
-        (||) Infer y = y
+        (||) (OnlyInfer _) (Infer AlgorithmW) = OnlyInfer AlgorithmW
+        (||) (Infer AlgorithmW) (OnlyInfer _) = OnlyInfer AlgorithmW
+        (||) (Infer AlgorithmW) (Infer _) = Infer AlgorithmW
+        (||) (Infer _) (Infer AlgorithmW) = Infer AlgorithmW
+        (||) (Infer _) (Infer _) = Infer AlgorithmT
+        (||) (OnlyInfer AlgorithmW) (OnlyInfer _) = OnlyInfer AlgorithmW
+        (||) (OnlyInfer _) (OnlyInfer AlgorithmW) = OnlyInfer AlgorithmW
+        (||) (OnlyInfer AlgorithmW) (Infer _) = OnlyInfer AlgorithmW
+        (||) (Infer _) (OnlyInfer AlgorithmW) = OnlyInfer AlgorithmW
+        (||) (OnlyInfer _) (OnlyInfer _) = OnlyInfer AlgorithmT
+        (||) x (Infer _) = x
+        (||) (Infer _) y = y
         (||) x y | x == y = x
                  | otherwise = TypingError "Can't typecheck when the type of an abstraction is unknown; also can't infer from extended terms."
 
