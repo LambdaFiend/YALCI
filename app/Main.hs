@@ -780,7 +780,7 @@ printType ast = do
           setSGR [SetColor Foreground Vivid Blue]
           putStrLn "The required context:"
           setSGR [Reset]
-          putStrLn $ show $ map (\(x, y) -> (x, showType y)) $ fst ty
+          putStrLn $ show $ map (\(x, y) -> (x, showType' y)) $ fst ty
           setSGR [SetColor Foreground Vivid Blue]
           putStrLn "Its principal type:"
           setSGR [Reset]
@@ -801,7 +801,7 @@ printType ast = do
           setSGR [SetColor Foreground Vivid Blue]
           putStrLn "The substitution:"
           setSGR [Reset]
-          putStrLn $ show $ map (\(x, y) -> (x, showType y)) $ fst ty
+          putStrLn $ show $ map (\(x, y) -> (showType' x, showType' y)) $ fst ty
           setSGR [SetColor Foreground Vivid Blue]
           putStrLn "Its principal type:"
           setSGR [Reset]
