@@ -133,7 +133,7 @@ Most of the commands are simple and similar. The table is dense because there ar
 | :showenv, :showe, :senv, :se | :se \<page_number\> | Show a specific environment page. |
 | :te, :tenv, :testenv | :te \<page_number\> | Type a specific environment page. |
 | :ee, :eenv, :evalenv | :ee \<page_number\> | Evaluate a specific environment page. |
-| <program> | <program> | Shows, then Types and then Evaluates the given program/term. |
+| \<program\> | \<program\> | Shows, then Types and then Evaluates the given program/term. |
 | *(Environment pages)* | — | Page numbers start at 1. |
 
 ## Lastly...
