@@ -341,12 +341,17 @@ main' env comml = do
         Left e -> return env
         Right term' -> do
           setSGR [SetColor Foreground Vivid Yellow]
+          putStrLn "Showing:"
+          setSGR [Reset]
+          printTerm term'
+          putStrLn ""
+          setSGR [SetColor Foreground Vivid Yellow]
           putStrLn "Typing:"
           setSGR [Reset]
           printType term'
           putStrLn ""
           setSGR [SetColor Foreground Vivid Yellow]
-          putStrLn "Evaluating:"
+          putStrLn "Evaluation:"
           setSGR [Reset]
           printEval term'
           return env
@@ -530,7 +535,8 @@ updateNextLines (x:xs) n = do
 readUntil' :: Char -> IO String
 readUntil' finalChar = do
   (leftRight, prevLines, nextLines) <- readUntil finalChar ([], []) [] [] 0 0
-  return $ concat (prevLines ++ leftRight ++ nextLines)
+  putStrLn ""
+  return $ concat $ (reverse $ prevLines) ++ leftRight ++ nextLines
 
 readUntil :: Char -> (String, String) -> [String] -> [String] -> Int -> Int -> IO ([String], [String], [String])
 readUntil finalChar (left, right) prevLines nextLines currH maxH = do
@@ -560,10 +566,10 @@ readUntil finalChar (left, right) prevLines nextLines currH maxH = do
           then putStr $ "\ESC[1D \ESC[1D" ++ replicate lenRight ' '
           else do
             putStr "\r"
-            putStr $ "stlce> " ++ replicate (lenLeft + lenRight) ' '
+            putStr $ replicate (lenLeft + lenRight) ' '
             putStr "\r"
-            putStr $ "stlce> " ++ left' ++ right
-            putStr $ "\ESC[" ++ show (length "stlce> " + lenLeft) ++ "G"
+            putStr $ left' ++ right
+            putStr $ "\ESC[" ++ show lenLeft ++ "G"
         readUntil finalChar (left', right) prevLines nextLines currH maxH
       [] -> readUntil finalChar (left, right) prevLines nextLines currH maxH
     '\ESC' -> do
@@ -763,7 +769,7 @@ printType ast = do
           setSGR [SetColor Foreground Vivid Blue]
           putStrLn "Its type:"
           setSGR [Reset]
-          putStrLn $ showType' ty
+          printTypeDisplay ty
           return $ Right ""
     inf | inf == Infer AlgorithmT || inf == OnlyInfer AlgorithmT -> do
       case inferT' ast of
@@ -784,7 +790,7 @@ printType ast = do
           setSGR [SetColor Foreground Vivid Blue]
           putStrLn "Its principal type:"
           setSGR [Reset]
-          putStrLn $ showType' $ snd ty
+          printTypeDisplay $ snd ty
           return $ Right ""
     inf | inf == Infer AlgorithmW || inf == OnlyInfer AlgorithmW -> do
       case inferW' ast of
@@ -805,12 +811,26 @@ printType ast = do
           setSGR [SetColor Foreground Vivid Blue]
           putStrLn "Its principal type:"
           setSGR [Reset]
-          putStrLn $ showType' $ snd ty
+          printTypeDisplay $ snd ty
           return $ Right ""
 
 printTerm :: TermNode -> IO (Either String String)
 printTerm t = do
   let display = findDisplayErrors' $ showTm' t
+  case display of
+    Left e -> do
+      putStrLn e
+      setSGR [SetColor Foreground Vivid Red]
+      putStrLn "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+      setSGR [Reset]
+      return $ Left ""
+    Right s -> do
+      putStrLn s
+      return $ Right ""
+
+printTypeDisplay :: Type -> IO (Either String String)
+printTypeDisplay ty = do
+  let display = findDisplayErrors' $ showType' ty
   case display of
     Left e -> do
       putStrLn e
