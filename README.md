@@ -55,7 +55,6 @@ I'm going to show each construct and its meaning in a very informal manner.
 | **tail\[T\] t** | **gets the tail of a list of type T** | **List T**<br>where t has type T |
 | **isnil\[T\] t** | **checks if a list of type T is empty** | **Bool**<br>where t has type T |
 | **cons\[T\] t1 t2** | **a list of type T**<br>with t1 as the head and t2 as the tail | **List T**<br>where t1 has type T and t2 has type List T |
-| **X** | **type variable or base type**<br>it must begin with an uppercase letter | 
 | **\X.t** | **type abstraction**<br>abstracts a type using a type variable<br>it's treated as a value | **∀X.T**<br>where t has type T<br>and X may occur in T |
 | **t\[T\]** | **type application**<br>allows the type T to replace<br>all occurrences of a certain variable within T<br>this targets type annotations | **\[X\-\>T\]T'**<br>where t1 has type ∀X.T' |
 | **\{\*T, t\} as \{∃X, T'\}** | **packs t**<br>this will allow its type to<br>be stay hidden and only be<br>compatible with terms from t | **\{∃X, T\}**<br>where T'' is the type of t<br>and T' = \[X\-\>T\] |
