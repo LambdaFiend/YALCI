@@ -20,7 +20,7 @@ The issue is very likely to be a missing dependency so this should suffice. **Ca
 
 Once you're running the program, write ```:?``` and press enter. It should give you about half the indications you need.
 
-As for the other half, I suggest taking a look at **Benjamin Pierce's "Types and Programming Languages" book**, most particularly its 11th section (which pertains to extensions) as well all the way through the 22st and the 24th (which pertain to polymorphism, including **Type Reconstruction**, **System F** and **Existential Quantifiers**).
+As for the other half, I suggest taking a look at **Benjamin Pierce's "Types and Programming Languages" book**, most particularly its **11th section** (which pertains to **Extensions**) as well all the way through the **22st** and the **24th** (which pertain to **Polymorphism**, including **Type Reconstruction**, **System F** and **Existential Quantifiers**).
 
 ## Syntax and Semantics
 
@@ -61,9 +61,9 @@ I'm going to show each construct and its meaning in a very informal manner.
 | **\{\*T, t\} as \{∃X, T'\}** | **packs t**<br>this will allow its type to<br>be stay hidden and only be<br>compatible with terms from t | **\{∃X, T\}**<br>where T'' is the type of t<br>and T' = \[X\-\>T\] |
 | **let \{X, x\} = t1 in t2** | **Unpacks t1 into t2**<br>this allows t1 to be used withint t2<br>just as explained for the **pack** constructor | **T2**<br>where T2 is the type of t2<br>assuming the existence of X<br>and t1 must have type T1 = {∃X, T1'}<br>and, at last, assuming x has type T1' |
 
-Don't forget to take a look at the ```programs/default_tests.txt``` file, as it contains exampless for all constructors of the language.
+Don't forget to take a look at the ```programs/default_tests.txt``` file, as it contains examples for all constructors of the language.
 
-Writing a number n is the same as writing succ(succ(...(0)...) (so, n succ's). The parser handles this. If the result of a program is in its entirety a number, then it will be pretty-printed as such, rather than the succession of succ's.
+Writing a number **n** is the same as writing succ(succ(...(0)...) (so, **n** succ's). The parser handles this. If the result of a program is in its entirety a number, then it will be pretty-printed as such, rather than the succession of succ's.
 
 You may write programs directly into the command line, as long as they neither follow nor are followed by anything else. Press enter and **YALCI** will echo its interpretation of the program, its type and its normal form (what it evaluates to, after being evaluated as much as possible).
 
@@ -79,29 +79,29 @@ The existential types and packing/unpacking operations allow functional style **
 
 There are **three primitive types**: **Bool**, **Nat** and **Unit**. **Bool** is for **booleans**, **Nat** is for **natural numbers** and **Unit** is for **unit** (with no real application besides sequencing, as of now). Then there are **Type Variables**, which are only used for **Type Inference**; they are displayed as a "t" followed by some number starting from 1. Try writing the term \x.x in the command-line. Another form of type **Type Variables** is the one used by System F. Check the **Syntax and Semantics** table for more information.
 
-{l1:T1, ..., ln:Tn} is related to the **Product Type**, more particularly it regards records.
+{l1:T1, ..., ln:Tn} is related to the **Product Type**, more particularly it regards **records**.
 
-\<l1:T1, ..., ln:Tn\> is related to the **Sum Type**, more particularly it regards variants.
+\<l1:T1, ..., ln:Tn\> is related to the **Sum Type**, more particularly it regards **variants**.
 
-T->T' is the **Type Arrow**, it comes from abstractions typically.
+T->T' is the **Type Arrow**, it comes from **abstractions**.
 
-List T is the **List Type** where the elements of a list are all of type T.
+List T is the **List Type** where the elements of a **list** are all of type T.
 
-∀X.T is the **Quantifier Type**, which represents a term where its outermost abstraction is a type abstraction. T may contain X's.
+∀X.T is the **Quantifier Type**, which represents a term where its outermost abstraction is a type abstraction. T may contain X's. Comes from **type abstractions**.
 
-\{∃X, T\} is the **Existential Type**, which represents a term where an abstracted X occurs in T. Looking at the type alone can be tricky, so check the table for the Syntax and Semantics.
+\{∃X, T\} is the **Existential Type**, which represents a term where an abstracted X occurs in T. Looking at the type alone can be tricky, so check the table for the **Syntax and Semantics**. It comes from **packs**.
 
-X is the **Base Type**, which must begin with an uppercase letter and may contain in between numbers or letters and end with any number of primes. There's no real use to these other than them serving as a placeholder for **Type Abstractions**. 
+X is the **Base Type**, which must begin with an uppercase letter and may contain in between numbers or letters and end with any number of primes. There's no real use to these other than them serving as a placeholder for **Type Abstractions**. It comes from unbound **type variables**.
 
 ## Notes
 
-Existentials can be encoded within System F alone, but I didn't end up implementing the desugaring for that. I didn't feel like it was worth it, my time is better used elsewhere. **Pierce** talked about it in his 24th section (it has a rather hint-y designation), so you can see how it's done in there.
+**Existentials** can be encoded within **System F** alone, but I didn't end up implementing the **desugaring** for that. I didn't feel like it was worth it, my time is better used elsewhere. **Pierce** talked about it in his 24th section (it has a rather hint-y designation), so you can see how it's done in there.
 
-The interpreter uses **De Bruijn** representation of terms in order to facilitate shifting and substituting operations. Alpha conversion can be assumed for apparently conflicting substitutions. If two bound names conflict, the innermost name will be given an extra prime until there are not more conflicts.
+The interpreter uses **De Bruijn** representation of terms in order to facilitate shifting and substituting operations. **Alpha Conversion** can be assumed for apparently conflicting substitutions. If two bound names conflict, the innermost name will be given an extra prime until there are not more conflicts.
 
-Simply **Typed Lambda Calculus** is well-known, but **System F** tends to stay in the shadows. **System F** is a far more expressive calculus, known as **Polymorphic Lambda Calculus**. The idea is that types can be quantified, not just terms. For a good reason, it corresponds to **Second Order Logic** via the **Curry-Howard Correspondence**, and this polymorphism is known as **Impredicative Polymorphism**. Its inference has been shown to be undecideable for quite a while by Wells \[1994\]. In any case, it's used by various compilers, even the most modern ones - which goes to show how impactful **System F** has been to the world of **Programming Languages**.
+Simply **Typed Lambda Calculus** is well-known, but **System F** tends to stay in the shadows. **System F** is a far more expressive calculus, known as **Polymorphic Lambda Calculus**. The idea is that types can be quantified, not just terms. For a good reason, it corresponds to **Second Order Logic** via the **Curry-Howard Correspondence**, and this **polymorphism** is known as **Impredicative Polymorphism**. Its inference has been shown to be undecideable for quite a while by Wells \[1994\]. In any case, it's used by various compilers, even the most modern ones - which goes to show how impactful **System F** has been to the world of **Programming Languages**.
 
-Regarding **Type Inference** or **Type Reconstruction**, **YALCI** includes both **Algorithm T** and **Algorithm W** (**Hindley-Milner-Damas** style). Unfortunately, these algorithms only cover the least amount of constructors needed for their existence.
+Regarding **Type Inference** or **Type Reconstruction**, **YALCI** includes both **Algorithm T** and **Algorithm W** (**Hindley-Milner-Damas** style). Unfortunately, these algorithms only cover the least amount of constructors needed for their basic functioning.
 
 ## Commands
 
@@ -135,3 +135,7 @@ Most of the commands are simple and similar. The table is dense because there ar
 | :ee, :eenv, :evalenv | :ee \<page_number\> | Evaluate a specific environment page. |
 | <program> | <program> | Shows, then Types and then Evaluates the given program/term. |
 | *(Environment pages)* | — | Page numbers start at 1. |
+
+## Lastly...
+
+Don't forget to **report** any **bugs**, **mistakes** or **flaws**! **Do criticize!** **Thank you!**
