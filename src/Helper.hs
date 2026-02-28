@@ -209,6 +209,7 @@ genIndex ctx t = let tm = getTm t; fi = getFI t; genIndex' = genIndex ctx in
             TyForAll x t1 -> TyForAll x (genIndexType (x:ctx) t1)
             TyForSome x t1 -> TyForSome x (genIndexType (x:ctx) t1)
             TyVarFRaw x -> TyVarF (length $ takeWhile (/= x) ctx) (length ctx) x
+            TyList t1 -> TyList (genIndexType ctx t1)
             _ -> ty
 
 id' :: TermNode -> UpdatedTmArrTm
@@ -311,6 +312,7 @@ findTypeErrors t =
     TyVarF _ _ _ -> []
     TyForAll _ ty -> findTypeErrors ty
     TyForSome _ ty -> findTypeErrors ty
+    _ -> []
 
 findTermErrors' :: TermNode -> String
 findTermErrors' t = intercalate "\n" $ findTermErrors t
