@@ -96,15 +96,17 @@ X is the **Base Type**, which must begin with an uppercase letter and may contai
 
 **Existentials** can be encoded within **System F** alone, but I didn't end up implementing the **desugaring** for that. I didn't feel like it was worth it, my time is better used elsewhere. **Pierce** talked about it in his 24th section (it has a rather hint-y designation), so you can see how it's done in there.
 
-The interpreter uses **De Bruijn** representation of terms in order to facilitate shifting and substituting operations. **Alpha Conversion** can be assumed for apparently conflicting substitutions. If two bound names conflict, the innermost name will be given an extra prime until there are not more conflicts.
+The interpreter uses, internally, **De Bruijn** representation of terms in order to facilitate shifting and substituting operations. **Alpha Conversion** can be assumed for apparently conflicting substitutions. When printing, if two bound names conflict, the innermost name will be given an extra prime until there are no more conflicts.
 
-**Simply Typed Lambda Calculus** is rather well-known, but **System F** tends to stay in the shadows. **System F** is a far more expressive calculus, known as **Polymorphic Lambda Calculus**. The idea is that types can be quantified, not just terms. For a good reason, it corresponds to **Intuitionist Second Order Logic** via the **Curry-Howard Isomorphism**, and this **polymorphism** is known as **Impredicative Polymorphism**. Its inference has been shown to be undecideable for quite a while by **Wells \[1994\]**. In any case, it's used by various compilers, even the most modern ones - which goes to show how impactful **System F** has been to the world of **Programming Languages**.
+**Simply Typed Lambda Calculus** is rather well-known, but **System F** tends to stay in the shadows. **System F** is a far more expressive calculus, known as **Polymorphic Lambda Calculus**. The idea is that types can be quantified, not just terms. For a good reason, it corresponds to **Intuitionist Second Order Logic** via the **Curry-Howard Isomorphism**, and this **polymorphism** is known as **Impredicative Polymorphism**. Its inference has been shown to be undecideable for quite a while by **Wells \[1994\]**. In any case, it's used implicitly by various compilers, even the most modern ones - which goes to show how impactful **System F** has been to the world of **Programming Languages**.
 
-Regarding **Type Inference** or **Type Reconstruction**, **YALCI** includes both **Algorithm T** and **Algorithm W** (**Hindley-Milner-Damas** style). Unfortunately, these algorithms only cover the least amount of constructors needed for their basic functioning.
+Regarding **Type Inference** or **Type Reconstruction**, **YALCI** includes both **Algorithm T** and **Algorithm W** (**Hindley-Milner-Damas** style). Unfortunately, these algorithms in **YALCI** only cover the least amount of constructors needed for their basic functioning:
+  - **for T, variables, abstractions and applications**;
+  - **for W, variables, abstractions, applications and let-bindings**.
 
 ## Commands
 
-Most of the commands are simple and similar. The table is dense because there are multiple configurations for the same thing. It was not well thought out, but serves its purpose. I hope this was not too much of a hurdle.
+Most of the commands are simple and related in purpose. The table is dense because there are multiple configurations for the same thing. It was not well thought out, but serves its purpose. I hope this was not too much of a hurdle.
 
 | Command(s) | Usage | Description |
 |------------|-------|------------|
@@ -137,9 +139,11 @@ Most of the commands are simple and similar. The table is dense because there ar
 
 ## To-do
 Add comments to the code.
+
 Possibly desugaring for existential-related constructors.
+
 Maybe something else?
 
 ## Lastly...
 
-Don't forget to **report** any **bugs**, **mistakes** or **flaws**! **Do criticize!** **Thank you!**
+Don't forget to report any bugs, mistakes or flaws! **Do criticize!** **Thank you!**
