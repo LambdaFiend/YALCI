@@ -23,7 +23,7 @@ traverseDownTm f t = TermNode fi $
     TmIsZero t1 -> TmIsZero $ traverseTm' t1
     TmUnit -> tm
     TmSeq t1 t2 -> TmSeq (traverseTm' t1) (traverseTm' t2)
-    TmWildCard ty t2 -> TmWildCard ty $ traverseTm' t2
+    TmWildCard ty t2 -> TmWildCard (fTy ty) $ traverseTm' t2
     TmAscribe t1 ty -> TmAscribe (traverseTm' t1) (fTy ty)
     TmLet p t1 t2 -> TmLet p (traverseTm'' t1) (traverseTm' t2)
     TmRecord ts -> TmRecord $ map (\(x, y) -> (x, traverseTm' y)) ts
