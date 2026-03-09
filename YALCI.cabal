@@ -7,13 +7,11 @@ description:
   Church-style for checking, inference only for the least constructors required for T and W each.
   The typing is automatically selected by YALCI.
 
-homepage: https://github.com/LambdaFiend/simply-typed-lambda-calculus-extended
-
---license: GPL-3.0-or-later
---license-file:       LICENSE
-
-author:     Gabriel Carlos
-maintainer: thelambdafiend@gmail.com
+homepage:     https://github.com/LambdaFiend/simply-typed-lambda-calculus-extended
+license:      BSD-3-Clause
+license-file: LICENSE
+author:       Gabriel Carlos
+maintainer:   thelambdafiend@gmail.com
 
 --copyright:
 
