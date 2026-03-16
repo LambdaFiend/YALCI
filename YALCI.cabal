@@ -38,7 +38,7 @@ executable YALCI
     Helper,
     Lexer,
     Parser,
-    Semantics,
+    Evaluation,
     Syntax,
     Typing
 
