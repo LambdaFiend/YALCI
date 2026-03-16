@@ -1,4 +1,4 @@
-module Semantics where
+module Evaluation where
 
 import Syntax
 import Helper
