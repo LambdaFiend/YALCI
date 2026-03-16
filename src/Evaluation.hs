@@ -49,7 +49,6 @@ eval1 t = let tm = getTm t; fi = getFI t in
       case getTm result of
         TmErr e -> TmErr e
         _ -> TmIsZero result
-    TmUnit -> TmUnit
     TmSeq (TermNode _ TmUnit) t2 -> getTm t2
     TmSeq t1 t2 | not $ isVal t1 -> let result = eval1 t1 in
       case getTm result of
