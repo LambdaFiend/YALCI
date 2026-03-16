@@ -250,50 +250,50 @@ getTypingMethod :: TermNode -> TypingMethod
 getTypingMethod t = let tm = getTm t in
   case tm of
     TmVar _ _ _ -> Infer AlgorithmT
-    TmApp t1 t2 -> Infer AlgorithmT || getTypingMethod t1 || getTypingMethod t2
-    TmAbs _ TyUnknown t1 -> OnlyInfer AlgorithmT || getTypingMethod t1
-    TmAbs _ _ t1 -> Check || getTypingMethod t1
-    TmLet (PVar _) t1 t2 -> Infer AlgorithmW || getTypingMethod t1 || getTypingMethod t2
-    TmLet _ t1 t2 -> Check || getTypingMethod t1 || getTypingMethod t2
+    TmApp t1 t2 -> Infer AlgorithmT ||| getTypingMethod t1 ||| getTypingMethod t2
+    TmAbs _ TyUnknown t1 -> OnlyInfer AlgorithmT ||| getTypingMethod t1
+    TmAbs _ _ t1 -> Check ||| getTypingMethod t1
+    TmLet (PVar _) t1 t2 -> Infer AlgorithmW ||| getTypingMethod t1 ||| getTypingMethod t2
+    TmLet _ t1 t2 -> Check ||| getTypingMethod t1 ||| getTypingMethod t2
     TmTrue -> Check
     TmFalse -> Check
-    TmIf t1 t2 t3 -> Check || getTypingMethod t1 || getTypingMethod t2 || getTypingMethod t3
+    TmIf t1 t2 t3 -> Check ||| getTypingMethod t1 ||| getTypingMethod t2 ||| getTypingMethod t3
     TmZero -> Check
-    TmSucc t1 -> Check || getTypingMethod t1
-    TmPred t1 -> Check || getTypingMethod t1
-    TmIsZero t1 -> Check || getTypingMethod t1
+    TmSucc t1 -> Check ||| getTypingMethod t1
+    TmPred t1 -> Check ||| getTypingMethod t1
+    TmIsZero t1 -> Check ||| getTypingMethod t1
     TmUnit -> Check
-    TmSeq t1 t2 -> Check || getTypingMethod t1 || getTypingMethod t2
-    TmWildCard _ t2 -> Check || getTypingMethod t2
-    TmAscribe t1 _ -> Check || getTypingMethod t1
-    TmRecord ts -> Check || foldr (||) Check (map (getTypingMethod . snd) ts)
-    TmProj t1 _ -> Check || getTypingMethod t1
-    TmVariant _ t1 _ -> Check || getTypingMethod t1
-    TmCase t1 ts -> Check || getTypingMethod t1 || foldr (||) Check (map (getTypingMethod . snd . snd) ts)
-    TmFix t1 -> Check || getTypingMethod t1
+    TmSeq t1 t2 -> Check ||| getTypingMethod t1 ||| getTypingMethod t2
+    TmWildCard _ t2 -> Check ||| getTypingMethod t2
+    TmAscribe t1 _ -> Check ||| getTypingMethod t1
+    TmRecord ts -> Check ||| foldr (|||) Check (map (getTypingMethod . snd) ts)
+    TmProj t1 _ -> Check ||| getTypingMethod t1
+    TmVariant _ t1 _ -> Check ||| getTypingMethod t1
+    TmCase t1 ts -> Check ||| getTypingMethod t1 ||| foldr (|||) Check (map (getTypingMethod . snd . snd) ts)
+    TmFix t1 -> Check ||| getTypingMethod t1
     TmNil _ -> Check
-    TmCons _ t1 t2 -> Check || getTypingMethod t1 || getTypingMethod t2
-    TmIsNil _ t1 -> Check || getTypingMethod t1
-    TmHead _ t1 -> Check || getTypingMethod t1
-    TmTail _ t1 -> Check || getTypingMethod t1
-    TmTyAbs x t1 -> Check || getTypingMethod t1
-    TmTyApp t1 ty -> Check || getTypingMethod t1
-    TmUnpack _ _ t1 t2 -> Check || getTypingMethod t1 || getTypingMethod t2
-    TmPack _ t1 _ -> Check || getTypingMethod t1
-  where (||) :: TypingMethod -> TypingMethod -> TypingMethod
-        (||) (OnlyInfer _) (Infer AlgorithmW) = OnlyInfer AlgorithmW
-        (||) (Infer AlgorithmW) (OnlyInfer _) = OnlyInfer AlgorithmW
-        (||) (Infer AlgorithmW) (Infer _) = Infer AlgorithmW
-        (||) (Infer _) (Infer AlgorithmW) = Infer AlgorithmW
-        (||) (Infer _) (Infer _) = Infer AlgorithmT
-        (||) (OnlyInfer AlgorithmW) (OnlyInfer _) = OnlyInfer AlgorithmW
-        (||) (OnlyInfer _) (OnlyInfer AlgorithmW) = OnlyInfer AlgorithmW
-        (||) (OnlyInfer AlgorithmW) (Infer _) = OnlyInfer AlgorithmW
-        (||) (Infer _) (OnlyInfer AlgorithmW) = OnlyInfer AlgorithmW
-        (||) (OnlyInfer _) (OnlyInfer _) = OnlyInfer AlgorithmT
-        (||) x (Infer _) = x
-        (||) (Infer _) y = y
-        (||) x y | x == y = x
+    TmCons _ t1 t2 -> Check ||| getTypingMethod t1 ||| getTypingMethod t2
+    TmIsNil _ t1 -> Check ||| getTypingMethod t1
+    TmHead _ t1 -> Check ||| getTypingMethod t1
+    TmTail _ t1 -> Check ||| getTypingMethod t1
+    TmTyAbs x t1 -> Check ||| getTypingMethod t1
+    TmTyApp t1 ty -> Check ||| getTypingMethod t1
+    TmUnpack _ _ t1 t2 -> Check ||| getTypingMethod t1 ||| getTypingMethod t2
+    TmPack _ t1 _ -> Check ||| getTypingMethod t1
+  where (|||) :: TypingMethod -> TypingMethod -> TypingMethod
+        (|||) (OnlyInfer _) (Infer AlgorithmW) = OnlyInfer AlgorithmW
+        (|||) (Infer AlgorithmW) (OnlyInfer _) = OnlyInfer AlgorithmW
+        (|||) (Infer AlgorithmW) (Infer _) = Infer AlgorithmW
+        (|||) (Infer _) (Infer AlgorithmW) = Infer AlgorithmW
+        (|||) (Infer _) (Infer _) = Infer AlgorithmT
+        (|||) (OnlyInfer AlgorithmW) (OnlyInfer _) = OnlyInfer AlgorithmW
+        (|||) (OnlyInfer _) (OnlyInfer AlgorithmW) = OnlyInfer AlgorithmW
+        (|||) (OnlyInfer AlgorithmW) (Infer _) = OnlyInfer AlgorithmW
+        (|||) (Infer _) (OnlyInfer AlgorithmW) = OnlyInfer AlgorithmW
+        (|||) (OnlyInfer _) (OnlyInfer _) = OnlyInfer AlgorithmT
+        (|||) x (Infer _) = x
+        (|||) (Infer _) y = y
+        (|||) x y | x == y = x
                  | otherwise = TypingError "Can't typecheck when the type of an abstraction is unknown; also can't infer from extended terms."
 
 findTypeErrors' :: Type -> String
