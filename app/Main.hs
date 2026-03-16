@@ -1,7 +1,7 @@
 module Main where
 
 import Syntax
-import Semantics
+import Evaluation
 import Typing
 import Display
 import Lexer
