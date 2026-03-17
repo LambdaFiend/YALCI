@@ -3,6 +3,8 @@
 
 **YALCI** is a **Haskell** implementation of **System F** with a variety of **extensions**, **type checking** and **type inference** (**Algorithms T and W**). Initially made as what's described but only for **STLC**, the **Simply Typed Lambda Calculus**.
 
+This was made for a university project under the guidance of professor Mário Florido.
+
 ## Instructions
 The steps for setting **YALCI** up are as follows:
 
