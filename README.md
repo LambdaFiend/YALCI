@@ -127,14 +127,14 @@ Most of the commands are simple and related in purpose. The table is dense becau
 | :v?, :vars | :v? \<number\> | Show the <number>'th page (containing 10 environment variables' names). |
 | :m, :mv, :move | :mv \<var_name1\> \<var_name2\> | Store the contents of <var_name2> into <var_name1>. |
 | :q, :quit | :q | Close the REPL. |
-| :te, :tenv, :testenv | :testenv | Attempt to type all variables in the environment. |
+| :te, :tenv, :typeenv | :typeenv | Attempt to type all variables in the environment. |
 | :ee, :eenv, :evalenv | :evalenv | Attempt to evaluate all variables in the environment. |
 | :c, :ce, :cenv, :clear, :clearenv | :c | Clear the environment (no variables accessible until new ones are added). |
 | :de, :denv, :desenv, :desugenv, :desugarenv | :de | Desugar all variables in the environment. |
 | :av?, :allvars | :av? | Show all variables in the environment. |
 | :showenv, :showe, :senv, :se | :se | Show the environment. |
 | :showenv, :showe, :senv, :se | :se \<page_number\> | Show a specific environment page. |
-| :te, :tenv, :testenv | :te \<page_number\> | Type a specific environment page. |
+| :te, :tenv, :typeenv | :te \<page_number\> | Type a specific environment page. |
 | :ee, :eenv, :evalenv | :ee \<page_number\> | Evaluate a specific environment page. |
 | \<program\> | \<program\> | Shows, then Types and then Evaluates the given program/term. |
 | *(Environment pages)* | — | Page numbers start at 1. |
