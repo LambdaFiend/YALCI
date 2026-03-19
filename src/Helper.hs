@@ -100,6 +100,7 @@ tyShift c d t =
     TyVarF k l x -> TyVarF (if k < c then k else k + d) (l + d) x
     TyForAll x t1 -> TyForAll x $ tyShift (c + 1) d t1
     TyForSome x t1 -> TyForSome x $ tyShift (c + 1) d t1
+    TyUnknown -> TyUnknown
     TyErr e -> TyErr e
     _ -> TyErr $ "Helper, tyShift: type is not applicable: " ++ show t
   where tyShift' = tyShift c d
@@ -120,6 +121,7 @@ tySubst c j s t =
     TyVarF k l x -> if k == j + c then tyShift' (j + c) s else t
     TyForAll x t1 -> TyForAll x $ tySubst (c + 1) j s t1
     TyForSome x t1 -> TyForSome x $ tySubst (c + 1) j s t1
+    TyUnknown -> TyUnknown
     TyErr e -> TyErr e
     _ -> TyErr $ "Helper, tySubst: type is not applicable; " ++ show t
   where tySubst' = tySubst c j s
