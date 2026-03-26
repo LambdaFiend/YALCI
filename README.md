@@ -1,5 +1,5 @@
-# Yet Another Lambda Calculus Interpreter
-Yet Another Lambda Calculus Interpreter.
+# YALCI
+**Y**et **A**nother **L**ambda **C**alculus **I**nterpreter.
 
 YALCI is a Haskell implementation of System F with a variety of extensions, type checking and type inference (Algorithms T and W). Initially made as what's described but only for STLC, the Simply Typed Lambda Calculus. Greatly based on **Benjamin Pierce's** (from the Types and Programming Languages book) STLC with extensions and System F (along with its existential types). Also based on **Professor Sandra Alves's** description of type inference à la ML (particularly, algorithms T and W).
 
