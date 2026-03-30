@@ -37,7 +37,7 @@ typeOf ctx t =
     TmLet p t1 t2 ->
       let tyT1 = typeOf' t1
           d = typeOfPattern p tyT1
-       in typeOf (d ++ ctx) t2
+       in tyShift' (negate $ length d) $ typeOf (d ++ ctx) t2
     TmProj t1 x -> let tyT1 = typeOf' t1 in
       case tyT1 of
         TyRecord tys -> fromMaybe $ lookup x tys
