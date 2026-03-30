@@ -133,7 +133,7 @@ shift :: Index -> Index -> TermNode -> UpdatedTmArrTm
 shift c d t = let tm = getTm t; fi = getFI t; shift' = shift c d in
   UpdatedTmArrTm $
   case tm of
-    TmVar k l x -> (TermNode fi $ TmVar (if k < c then k else k + d) (l + d) x, id', id', tyShift' d)
+    TmVar k l x -> (TermNode fi $ TmVar (if k < c then k else k + d) (l + d) x, id', id', tyShift c d)
     TmAbs x ty t1 -> (t, shift (c + 1) d, shift', tyShift c d)
     TmWildCard ty t2 -> (t, shift (c + 1) d, shift', tyShift c d)
     TmLet p t1 t2 -> (t, shift (c + (length $ namesOfPattern p)) d, shift', tyShift c d)
