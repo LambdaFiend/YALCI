@@ -1,7 +1,7 @@
 module Main where
 
 import Syntax
-import Evaluation
+import Semantics
 import Typing
 import Display
 import Lexer
@@ -34,13 +34,15 @@ getHelp = (\s -> s ++ "\n") $ intercalate "\n" $
     : ":h\n"
     : "[:show, :sh and :s show the term assigned to <var_name>]\n"
     : ":s <var_name>\n"
-    : "[:desugar, :desug, :des and :d are for when one wants to evaluate/typecheck using the desugared version; gets the input term from <var_name1> and stores the result into <var_name2>]\n"
+    : "[:desugar, :desug, :des and :d are for cases where one wants to evaluate/typecheck using the desugared version]\n"
     : ":d <var_name1> <var_name2>\n"
     : ("[Additionally, for command :var, :v, :assign and :a, a third argument may be added, "
       ++ "which is meant to be either :eval, :ev, :e, :evaln, :evn and :en, in which case "
       ++ "it evaluates from the current environment (given a <var_name2>) and then stores it into <var_name1>]\n")
     : ":v <var_name1> :ev <var_name2>\n"
     : ":v <var_name1> :evn <number_of_steps> <var_name2>\n"
+    : "[:desugar, :desug, :des and :d desugar the term from <var_name1> and place it into <var_name2>]\n"
+    : ":d <var_name1> <var_name2>\n"
     : "[:load and :l load terms from file at <file_path>, which are assigned inside the file as <var_name> := <expression>, and then loaded into the environment correspondingly]\n"
     : ":l <file_path>\n"
     : "[:v? and :vars show the first page (10 environment variables) of the environment, if a number is not specified]\n"
@@ -51,8 +53,8 @@ getHelp = (\s -> s ++ "\n") $ intercalate "\n" $
     : ":mv <var_name1> <var_name2>\n"
     : "[:q and :quit close the REPL]\n"
     : ":q\n"
-    : "[:te, :tenv and :typeenv attempt to type all variables in the environment]\n"
-    : ":typeenv\n"
+    : "[:te, :tenv and :testenv attempt to type all variables in the environment]\n"
+    : ":testenv\n"
     : "[:ee, :eenv and :evalenv attempt to evaluate all variables in the environment]\n"
     : ":evalenv\n"
     : "[:c, :ce, :cenv, :clear and :clearenv clear the environment, which means there will be no variables accessible until new ones are added]\n"
@@ -678,7 +680,15 @@ getTermFromAST txt = do
       putStrLn e
       setSGR [Reset]
       return $ Left ""
-    Right ast' -> return $ Right $ genIndex' ast'
+    Right ast' ->
+      let ast'' = genIndex' ast'
+       in case findTermErrors' ast'' of
+            [] -> return $ Right ast''
+            es -> do
+              setSGR [SetColor Foreground Vivid Red]
+              putStrLn es
+              setSGR [Reset]
+              return $ Left ""
 
 getMultipleASTsFromTerms :: [(String, String)] -> IO [(String, TermNode)]
 getMultipleASTsFromTerms [] = return []
