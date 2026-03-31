@@ -40,6 +40,7 @@ traverseDownTm f t = TermNode fi $
     TmTyApp t1 ty -> TmTyApp (traverseTm' t1) (fTy ty)
     TmPack ty1 t1 ty2 -> TmPack (fTy ty1) (traverseTm' t1) (fTy ty2)
     TmUnpack x1 x2 t1 t2 -> TmUnpack x1 x2 (traverseTm'' t1) (traverseTm' t2)
+    TmErr _ -> tm
   where tm = getTm t'
         fi = getFI t'
         traverseTm'  = traverseDownTm f'
@@ -133,7 +134,7 @@ shift :: Index -> Index -> TermNode -> UpdatedTmArrTm
 shift c d t = let tm = getTm t; fi = getFI t; shift' = shift c d in
   UpdatedTmArrTm $
   case tm of
-    TmVar k l x -> (TermNode fi $ TmVar (if k < c then k else k + d) (l + d) x, id', id', tyShift c d)
+    TmVar k l x -> (TermNode fi $ TmVar (if k < c then k else k + d) (l + d) x, id', id', tyShift' d)
     TmAbs x ty t1 -> (t, shift (c + 1) d, shift', tyShift c d)
     TmWildCard ty t2 -> (t, shift (c + 1) d, shift', tyShift c d)
     TmLet p t1 t2 -> (t, shift (c + (length $ namesOfPattern p)) d, shift', tyShift c d)
@@ -183,7 +184,8 @@ genIndex :: [Name] -> TermNode -> UpdatedTmArrTm
 genIndex ctx t = let tm = getTm t; fi = getFI t; genIndex' = genIndex ctx in
   UpdatedTmArrTm $
   case tm of
-    TmVarRaw x -> (TermNode fi $ TmVar (length $ takeWhile (/= x) ctx) (length ctx) x, genIndex', genIndex', id :: Type -> Type)
+    TmVarRaw x | elem x ctx -> (TermNode fi $ TmVar (length $ takeWhile (/= x) ctx) (length ctx) x, genIndex', genIndex', id :: Type -> Type)
+    TmVarRaw x -> (TermNode fi $ TmErr ("Free variables are not allowed: " ++ x), genIndex', genIndex', id :: Type -> Type)
     TmAbs x ty t1 -> (TermNode fi $ TmAbs x (genIndexType ctx ty) t1, genIndex (x:ctx), genIndex', id :: Type -> Type)
     TmWildCard ty t2 -> (TermNode fi $ TmWildCard (genIndexType ctx ty) t2, genIndex ("":ctx), genIndex', id :: Type -> Type)
     TmRecord ts -> (TermNode fi $ TmRecord (map (\((x, y), k) -> (case x of "" -> show k; _ -> x, y)) $ zip ts [1..]), genIndex', genIndex', id :: Type -> Type)
@@ -210,7 +212,8 @@ genIndex ctx t = let tm = getTm t; fi = getFI t; genIndex' = genIndex ctx in
             TyArr t1 t2 -> TyArr (genIndexType ctx t1) (genIndexType ctx t2)
             TyForAll x t1 -> TyForAll x (genIndexType (x:ctx) t1)
             TyForSome x t1 -> TyForSome x (genIndexType (x:ctx) t1)
-            TyVarFRaw x -> TyVarF (length $ takeWhile (/= x) ctx) (length ctx) x
+            TyVarFRaw x | elem x ctx -> TyVarF (length $ takeWhile (/= x) ctx) (length ctx) x
+            TyVarFRaw x -> TyErr ("Free variables are not allowed: " ++ x)
             TyList t1 -> TyList (genIndexType ctx t1)
             _ -> ty
 
@@ -326,7 +329,7 @@ findTermErrors t = let tm = getTm t in
     TmVar _ _ _ -> []
     TmApp t1 t2 -> findTermErrors t1 ++ findTermErrors t2
     TmAbs _ TyUnknown t1 -> findTermErrors t1
-    TmAbs _ _ t1 -> findTermErrors t1
+    TmAbs _ ty t1 -> findTypeErrors ty ++ findTermErrors t1
     TmTrue -> []
     TmFalse -> []
     TmIf t1 t2 t3 -> findTermErrors t1 ++ findTermErrors t2 ++ findTermErrors t3
@@ -336,23 +339,23 @@ findTermErrors t = let tm = getTm t in
     TmIsZero t1 -> findTermErrors t1
     TmUnit -> []
     TmSeq t1 t2 -> findTermErrors t1 ++ findTermErrors t2
-    TmWildCard _ t2 -> findTermErrors t2
-    TmAscribe t1 _ -> findTermErrors t1
+    TmWildCard ty t2 -> findTypeErrors ty ++ findTermErrors t2
+    TmAscribe t1 ty -> findTermErrors t1 ++ findTypeErrors ty
     TmLet _ t1 t2 -> findTermErrors t1 ++ findTermErrors t2
     TmRecord ts -> foldr (++) [] (map (findTermErrors . snd) ts)
     TmProj t1 _ -> findTermErrors t1
-    TmVariant _ t1 _ -> findTermErrors t1
+    TmVariant _ t1 ty -> findTermErrors t1 ++ findTypeErrors ty
     TmCase t1 ts -> findTermErrors t1 ++ foldr (++) [] (map (findTermErrors . snd . snd) ts)
     TmFix t1 -> findTermErrors t1
-    TmNil _ -> []
-    TmCons _ t1 t2 -> findTermErrors t1 ++ findTermErrors t2
-    TmIsNil _ t1 -> findTermErrors t1
-    TmHead _ t1 -> findTermErrors t1
-    TmTail _ t1 -> findTermErrors t1
+    TmNil ty -> findTypeErrors ty
+    TmCons ty t1 t2 -> findTypeErrors ty ++ findTermErrors t1 ++ findTermErrors t2
+    TmIsNil ty t1 -> findTypeErrors ty ++ findTermErrors t1
+    TmHead ty t1 -> findTypeErrors ty ++ findTermErrors t1
+    TmTail ty t1 -> findTypeErrors ty ++ findTermErrors t1
     TmTyAbs x t1 -> findTermErrors t1
-    TmTyApp t1 ty -> findTermErrors t1
+    TmTyApp t1 ty -> findTermErrors t1 ++ findTypeErrors ty
+    TmPack ty1 t1 ty2 -> findTypeErrors ty1 ++ findTermErrors t1 ++ findTypeErrors ty2
     TmUnpack _ _ t1 t2 -> findTermErrors t1 ++ findTermErrors t2
-    TmPack _ t1 _ -> findTermErrors t1
 
 findDisplayErrors' :: String -> Either String String
 findDisplayErrors' s =
