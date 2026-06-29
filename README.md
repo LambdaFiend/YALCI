@@ -139,13 +139,6 @@ Most of the commands are simple and related in purpose. The table is dense becau
 | \<program\> | \<program\> | Shows, then Types and then Evaluates the given program/term. |
 | *(Environment pages)* | — | Page numbers start at 1. |
 
-## To-do
-Add comments to the code.
-
-Possibly desugaring for existential-related constructs.
-
-Maybe something else?
-
 ## Lastly...
 
 Don't forget to report any bugs, mistakes or flaws! Do criticize! Thank you!
